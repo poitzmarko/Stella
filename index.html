@@ -2,70 +2,143 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="FX Pro – multilingual currency converter and travel companion with GPS, map and nearby search." />
+  <meta name="description" content="FX Pro – kompakter, mehrsprachiger Währungsrechner mit GPS, Karte und Nearby-Suche, iPhone-optimiert." />
   <title>FX Pro</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <style>
-    :root {
-      --bg:#f3f7ff; --bg2:#eef2ff; --surface:rgba(255,255,255,.78); --surface-strong:rgba(255,255,255,.92);
-      --text:#0f172a; --muted:#64748b; --border:rgba(148,163,184,.25); --shadow:0 24px 80px rgba(15,23,42,.12);
-      --shadow-soft:0 12px 36px rgba(15,23,42,.08); --accent1:#0ea5e9; --accent2:#14b8a6; --accent3:#8b5cf6;
+    :root{
+      --bg:#f6f8ff; --bg2:#eef2ff; --surface:rgba(255,255,255,.8); --surface-strong:rgba(255,255,255,.95);
+      --text:#0f172a; --muted:#64748b; --border:rgba(148,163,184,.25); --shadow:0 24px 80px rgba(15,23,42,.10);
+      --shadow-soft:0 10px 28px rgba(15,23,42,.08); --accent1:#0ea5e9; --accent2:#14b8a6; --accent3:#8b5cf6;
       --chip:rgba(15,23,42,.06); --chip-active:#0f172a; --chip-active-text:#fff; --input-bg:rgba(255,255,255,.92);
       --ring:rgba(15,23,42,.10); --poi-atm:#2563eb; --poi-food:#f97316; --poi-drink:#8b5cf6; --poi-cafe:#14b8a6; --poi-hotel:#22c55e;
     }
-    [data-theme="dark"] {
-      --bg:#020617; --bg2:#0f172a; --surface:rgba(15,23,42,.70); --surface-strong:rgba(15,23,42,.88); --text:#e2e8f0;
-      --muted:#94a3b8; --border:rgba(148,163,184,.16); --shadow:0 24px 80px rgba(0,0,0,.36); --shadow-soft:0 12px 36px rgba(0,0,0,.28);
+    [data-theme="dark"]{
+      --bg:#020617; --bg2:#0f172a; --surface:rgba(15,23,42,.72); --surface-strong:rgba(15,23,42,.9); --text:#e2e8f0;
+      --muted:#94a3b8; --border:rgba(148,163,184,.16); --shadow:0 24px 80px rgba(0,0,0,.34); --shadow-soft:0 10px 28px rgba(0,0,0,.24);
       --accent1:#38bdf8; --accent2:#2dd4bf; --accent3:#a78bfa; --chip:rgba(148,163,184,.12); --chip-active:#f8fafc; --chip-active-text:#0f172a;
-      --input-bg:rgba(2,6,23,.58); --ring:rgba(148,163,184,.18);
+      --input-bg:rgba(2,6,23,.56); --ring:rgba(148,163,184,.18);
     }
     *{box-sizing:border-box} html{scroll-behavior:smooth}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);min-height:100vh;background:radial-gradient(circle at top, rgba(99,102,241,.14), transparent 32%), radial-gradient(circle at 15% 12%, rgba(14,165,233,.10), transparent 22%), linear-gradient(180deg,var(--bg2),var(--bg));}
-    .wrap{width:min(1320px, calc(100% - 24px));margin:0 auto;padding:24px 0 36px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-    .brand{display:flex;align-items:center;gap:14px}.logo{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--accent3),var(--accent1));box-shadow:var(--shadow-soft);font-size:26px}
-    h1{margin:0;font-size:clamp(28px,3vw,42px);line-height:1.05;letter-spacing:-.04em}.subtitle{margin-top:6px;color:var(--muted);font-size:14px}
-    .status,.card,.panel,.module-card{border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(18px);box-shadow:var(--shadow)}
-    .status{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;box-shadow:var(--shadow-soft)}
-    .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#14b8a6);box-shadow:0 0 0 6px rgba(34,197,94,.12)}
-    .status strong{display:block;font-size:13px}.status span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
-    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .control,.btn,.chip,.poi-chip,.seg-btn,.link-btn{border:1px solid var(--border);background:var(--surface-strong);color:var(--text);box-shadow:var(--shadow-soft);cursor:pointer;transition:transform .12s ease, background .12s ease, box-shadow .12s ease}
-    .control:hover,.btn:hover,.chip:hover,.poi-chip:hover,.seg-btn:hover,.link-btn:hover{transform:translateY(-1px)}
-    .control:active,.btn:active,.chip:active,.poi-chip:active,.seg-btn:active,.link-btn:active{transform:scale(.98)}
-    .control{display:inline-flex;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;font-weight:800}
-    .layout{display:grid;grid-template-columns:1.35fr .95fr;gap:18px;align-items:start}
-    .card{border-radius:28px;overflow:hidden}.card-inner{padding:22px}
-    .hero{padding:20px;border-bottom:1px solid var(--border);background:radial-gradient(circle at 0 0, rgba(255,255,255,.38), transparent 35%), linear-gradient(135deg, rgba(14,165,233,.18), rgba(139,92,246,.16), rgba(20,184,166,.12))}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface-strong);font-size:12px;color:var(--muted)}
-    .controls{display:grid;grid-template-columns:1.25fr .95fr;gap:14px;margin-top:18px}.field{display:grid;gap:8px} label{font-size:13px;font-weight:700;color:var(--muted)}
-    .input,.select{width:100%;border:1px solid var(--border);background:var(--input-bg);color:var(--text);border-radius:18px;padding:15px 16px;outline:none;font:inherit}.input:focus,.select:focus{box-shadow:0 0 0 4px var(--ring)}
-    .amount{font-size:28px;font-weight:900;letter-spacing:-.04em}.searchwrap{position:relative}.searchwrap::before{content:"⌕";position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted)} .searchwrap .input{padding-left:42px}
-    .pair{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end}.swap{width:56px;height:56px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface-strong);cursor:pointer;box-shadow:var(--shadow-soft)} .swap svg{width:20px;height:20px}
-    .btn{padding:14px 16px;font-weight:800;border-radius:18px}.btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent1));color:#fff;border-color:transparent}.btn.secondary{background:var(--surface-strong)}
-    .result{padding:18px;border-radius:24px;color:#fff;background:linear-gradient(135deg,var(--accent1),var(--accent3));box-shadow:var(--shadow-soft)} .result .big{font-size:clamp(30px,5vw,46px);line-height:1;font-weight:900;letter-spacing:-.05em} .result .small{margin-top:6px;opacity:.85;font-size:13px}
-    .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.kpi{border:1px solid var(--border);background:var(--surface-strong);border-radius:22px;padding:14px;box-shadow:var(--shadow-soft)}
-    .kpi .label{display:flex;gap:8px;align-items:center;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.kpi .value{margin-top:10px;font-size:18px;font-weight:900;letter-spacing:-.03em;word-break:break-word}
-    .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-    .currency-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin-top:14px;-webkit-overflow-scrolling:touch}.currency-chip{flex:0 0 auto;border:1px solid var(--border);background:var(--surface-strong);color:var(--text);padding:10px 12px;border-radius:999px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-soft);white-space:nowrap}.currency-chip.active{background:var(--chip-active);color:var(--chip-active-text);border-color:transparent}
-    .sidebar{display:grid;gap:18px}.section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.section-head h2{margin:0;font-size:16px;letter-spacing:-.03em}.section-head .hint{color:var(--muted);font-size:12px;margin-top:4px}
-    .chips{display:flex;flex-wrap:wrap;gap:10px}.chip{padding:10px 14px;font-size:13px;font-weight:800;background:var(--chip);border-radius:999px}.chip.active,.poi-chip.active,.seg-btn.active{background:var(--chip-active);color:var(--chip-active-text);border-color:transparent}
-    .mini-list{display:grid;gap:10px}.mini-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--border);background:var(--surface-strong);border-radius:18px;box-shadow:var(--shadow-soft)}
-    .mini-left{display:flex;gap:12px;align-items:center}.flag{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg, rgba(148,163,184,.22), rgba(255,255,255,.24));font-size:22px}.mini-row strong{display:block;font-size:14px}.mini-row span{display:block;font-size:12px;color:var(--muted);margin-top:2px}.mini-right{font-size:13px;color:var(--muted);font-weight:800}
-    .module-card{border-radius:24px;overflow:hidden}.module-inner{padding:18px}.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.module{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:14px}.module-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.module-title{font-weight:900}.module-desc{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.5}
-    .switch{display:inline-flex;align-items:center;gap:8px;user-select:none}.switch input{display:none}.slider{width:44px;height:26px;border-radius:999px;position:relative;background:rgba(148,163,184,.30);transition:background .12s ease;flex:0 0 auto}.slider::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .12s ease;box-shadow:0 4px 10px rgba(0,0,0,.14)} .switch input:checked + .slider{background:linear-gradient(135deg,var(--accent2),var(--accent1))} .switch input:checked + .slider::after{transform:translateX(18px)}
-    .module-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.tag{padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(148,163,184,.14);color:var(--muted);border:1px solid var(--border)}
-    .map-shell{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:18px} #map{width:100%;height:420px;border-radius:24px;background:linear-gradient(135deg, rgba(14,165,233,.08), rgba(139,92,246,.08))} .panel{border-radius:24px;border:1px solid var(--border);background:var(--surface-strong);box-shadow:var(--shadow-soft);overflow:hidden}
-    .poi-panel{padding:16px}.poi-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.poi-chip{padding:10px 12px;font-size:13px;font-weight:800;background:var(--chip);border-radius:18px;border:1px solid var(--border)}
-    .poi-list{display:grid;gap:10px;max-height:320px;overflow:auto;padding-right:2px}.poi-item{border:1px solid var(--border);border-radius:18px;background:var(--surface);padding:12px;box-shadow:var(--shadow-soft);display:grid;gap:6px}.poi-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.poi-name{font-weight:900}.poi-meta{color:var(--muted);font-size:12px;line-height:1.45}.poi-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.link-btn{padding:10px 12px;font-size:12px;text-decoration:none;border-radius:18px}.tiny{color:var(--muted);font-size:12px}
-    .location-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding:14px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface-strong)} .location-banner strong{display:block} .location-banner span{display:block;margin-top:3px;color:var(--muted);font-size:12px}
-    .hide{display:none !important}.footer-note{color:var(--muted);font-size:12px;line-height:1.5;margin-top:12px}
-    @media (max-width:1120px){.layout,.map-shell,.module-grid{grid-template-columns:1fr}} @media (max-width:720px){.wrap{width:min(100% - 16px,1320px);padding-top:16px}.controls,.pair,.kpis,.actions{grid-template-columns:1fr}.swap{width:100%;height:52px;border-radius:16px}.swap::after{content:"Tauschen";margin-left:8px;font-weight:800}.hero{padding:16px}.card-inner,.module-inner{padding:16px}#map{height:360px}.control{width:100%;justify-content:center}}
+    body{
+      margin:0; min-height:100vh; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--text);
+      background:radial-gradient(circle at top, rgba(99,102,241,.12), transparent 30%), linear-gradient(180deg,var(--bg2),var(--bg));
+      padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+    }
+    .wrap{width:min(1320px, calc(100% - 14px)); margin:0 auto; padding:14px 0 22px}
+    .topbar{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:52px; height:52px; border-radius:16px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,var(--accent3),var(--accent1)); box-shadow:var(--shadow-soft); font-size:24px}
+    h1{margin:0; font-size:clamp(28px,3vw,40px); line-height:1.03; letter-spacing:-.04em}
+    .subtitle{margin-top:4px; color:var(--muted); font-size:13px}
+    .status,.card,.panel,.module-card{border:1px solid var(--border); background:var(--surface); backdrop-filter:blur(18px); box-shadow:var(--shadow)}
+    .status{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:16px; box-shadow:var(--shadow-soft)}
+    .dot{width:10px; height:10px; border-radius:50%; background:linear-gradient(135deg,#22c55e,#14b8a6); box-shadow:0 0 0 6px rgba(34,197,94,.10)}
+    .status strong{display:block; font-size:13px}.status span{display:block; font-size:12px; color:var(--muted); margin-top:2px}
+    .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    .control,.btn,.chip,.poi-chip,.link-btn{border:1px solid var(--border); background:var(--surface-strong); color:var(--text); box-shadow:var(--shadow-soft); cursor:pointer; transition:transform .12s ease, background .12s ease}
+    .control:hover,.btn:hover,.chip:hover,.poi-chip:hover,.link-btn:hover{transform:translateY(-1px)}
+    .control:active,.btn:active,.chip:active,.poi-chip:active,.link-btn:active{transform:scale(.98)}
+    .control{display:inline-flex; align-items:center; gap:8px; padding:11px 12px; border-radius:16px; font-weight:800; min-height:44px}
+    .layout{display:grid; grid-template-columns:1.28fr .92fr; gap:12px; align-items:start}
+    .card{border-radius:24px; overflow:hidden}
+    .card-inner{padding:16px}
+    .hero{padding:16px; border-bottom:1px solid var(--border); background:radial-gradient(circle at 0 0, rgba(255,255,255,.40), transparent 36%), linear-gradient(135deg, rgba(14,165,233,.16), rgba(139,92,246,.14), rgba(20,184,166,.10))}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface-strong); font-size:12px; color:var(--muted)}
+    .converter{position:relative; display:grid; gap:8px; margin-top:12px}
+    .row{display:grid; grid-template-columns:minmax(150px,1fr) minmax(120px,190px); gap:8px; align-items:center; padding:11px 12px; border:1px solid var(--border); border-radius:26px; background:var(--surface-strong); box-shadow:var(--shadow-soft)}
+    .left{display:grid; gap:6px; min-width:0}
+    .left label{font-size:10px; letter-spacing:.10em; text-transform:uppercase; color:var(--muted); font-weight:800}
+    .select,.amount{width:100%; border:0; background:transparent; color:var(--text); outline:none; font:inherit}
+    .select{font-size:16px; font-weight:900; padding:0; appearance:none; -webkit-appearance:none}
+    .amount{font-size:clamp(24px,4vw,34px); font-weight:900; text-align:right; padding:0}
+    .amount::placeholder{color:rgba(148,163,184,.55)}
+    .swap{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:999px; border:1px solid var(--border); background:var(--surface-strong); box-shadow:var(--shadow-soft); display:grid; place-items:center; z-index:2; cursor:pointer}
+    .swap svg{width:20px; height:20px}
+    .compact-result{display:flex; flex-direction:column; align-items:flex-end; justify-content:center; text-align:right; min-width:0}
+    .compact-value{font-size:clamp(26px,4.2vw,38px); font-weight:900; letter-spacing:-.05em; line-height:1}
+    .compact-sub{margin-top:4px; font-size:12px; color:var(--muted); font-weight:700}
+    .rate-card{margin-top:10px; padding:12px 14px; border-radius:18px; background:rgba(15,23,42,.05); border:1px solid var(--border); font-size:clamp(13px,2.1vw,16px); font-weight:900; letter-spacing:-.03em}
+    [data-theme="dark"] .rate-card{background:rgba(148,163,184,.08)}
+    .actions{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px}
+    .btn{padding:13px 14px; font-weight:800; border-radius:16px; min-height:44px}
+    .btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent1)); color:#fff; border-color:transparent}
+    .btn.secondary{background:var(--surface-strong)}
+    .mini-note{margin-top:8px; color:var(--muted); font-size:12px; line-height:1.45}
+    .section-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px}
+    .section-head h2{margin:0; font-size:15px; letter-spacing:-.03em}
+    .section-head .hint{color:var(--muted); font-size:12px; margin-top:3px}
+    .chips{display:flex; flex-wrap:wrap; gap:7px}
+    .chip{padding:9px 11px; font-size:13px; font-weight:800; border-radius:999px; background:var(--chip); min-height:40px}
+    .chip.active,.poi-chip.active{background:var(--chip-active); color:var(--chip-active-text); border-color:transparent}
+    .mini-list{display:grid; gap:7px}
+    .mini-row{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left; padding:10px 11px; border:1px solid var(--border); background:var(--surface-strong); border-radius:15px; box-shadow:var(--shadow-soft)}
+    .mini-left{display:flex; gap:10px; align-items:center}
+    .flag{width:38px; height:38px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, rgba(148,163,184,.22), rgba(255,255,255,.24)); font-size:20px}
+    .mini-row strong{display:block; font-size:13px}
+    .mini-row span{display:block; font-size:12px; color:var(--muted); margin-top:2px}
+    .mini-right{font-size:12px; color:var(--muted); font-weight:800}
+    .module-card{border-radius:22px; overflow:hidden}
+    .module-inner{padding:14px}
+    .module-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+    .module{border:1px solid var(--border); background:var(--surface); border-radius:16px; padding:11px}
+    .module-top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .module-title{font-weight:900}
+    .module-desc{color:var(--muted); font-size:12px; margin-top:5px; line-height:1.45}
+    .switch{display:inline-flex; align-items:center; user-select:none}
+    .switch input{display:none}
+    .slider{width:44px; height:26px; border-radius:999px; position:relative; background:rgba(148,163,184,.30); transition:background .12s ease; flex:0 0 auto}
+    .slider::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:transform .12s ease; box-shadow:0 4px 10px rgba(0,0,0,.14)}
+    .switch input:checked + .slider{background:linear-gradient(135deg,var(--accent2),var(--accent1))}
+    .switch input:checked + .slider::after{transform:translateX(18px)}
+    .module-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+    .tag{padding:5px 8px; border-radius:999px; font-size:11px; background:rgba(148,163,184,.14); color:var(--muted); border:1px solid var(--border)}
+    .map-shell{display:grid; grid-template-columns:1.06fr .94fr; gap:10px; margin-top:12px}
+    #map{width:100%; height:360px; border-radius:20px; background:linear-gradient(135deg, rgba(14,165,233,.08), rgba(139,92,246,.08))}
+    .panel{border-radius:20px; border:1px solid var(--border); background:var(--surface-strong); box-shadow:var(--shadow-soft); overflow:hidden}
+    .poi-panel{padding:10px}
+    .poi-controls{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px}
+    .poi-chip{padding:8px 9px; font-size:11px; font-weight:800; background:var(--chip); border-radius:14px; border:1px solid var(--border); min-height:36px}
+    .poi-list{display:grid; gap:7px; max-height:250px; overflow:auto; padding-right:2px}
+    .poi-item{border:1px solid var(--border); border-radius:14px; background:var(--surface); padding:9px; box-shadow:var(--shadow-soft); display:grid; gap:4px}
+    .poi-top{display:flex; justify-content:space-between; gap:8px; align-items:flex-start}
+    .poi-name{font-weight:900}
+    .poi-meta{color:var(--muted); font-size:12px; line-height:1.4}
+    .poi-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:4px}
+    .link-btn{padding:9px 10px; font-size:12px; text-decoration:none; border-radius:14px; min-height:40px; display:inline-flex; align-items:center; justify-content:center}
+    .tiny{color:var(--muted); font-size:12px}
+    .location-banner{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:12px; padding:12px 14px; border-radius:18px; border:1px solid var(--border); background:var(--surface-strong)}
+    .location-banner strong{display:block}
+    .location-banner span{display:block; margin-top:3px; color:var(--muted); font-size:12px}
+    .hide{display:none !important}
+    .footer-note{color:var(--muted); font-size:12px; line-height:1.5; margin-top:10px}
+    @media (max-width:1120px){.layout,.map-shell,.module-grid{grid-template-columns:1fr}}
+    @media (max-width:720px){
+      .wrap{width:min(100% - 12px,1320px); padding-top:12px}
+      .topbar{margin-bottom:10px}
+      .layout{gap:10px}
+      .row{grid-template-columns:1fr auto; align-items:start}
+      .swap{width:48px; height:48px}
+      .hero{padding:14px}
+      .card-inner,.module-inner{padding:12px}
+      #map{height:300px}
+      .actions{gap:7px}
+      .control{width:100%; justify-content:center}
+      .poi-list{max-height:220px}
+      .poi-panel{padding:9px}
+      .compact-value{font-size:clamp(24px,6vw,34px)}
+      .rate-card{font-size:14px}
+      .mini-row{padding:9px 10px}
+      .chip,.poi-chip{min-height:38px}
+      .toolbar{width:100%; justify-content:stretch}
+      .status{width:100%; justify-content:flex-start}
+    }
+    @media (pointer:coarse){.control,.btn,.chip,.poi-chip,.link-btn{min-height:44px}}
   </style>
 </head>
 <body>
@@ -89,64 +162,116 @@
       <section class="card">
         <div class="hero">
           <div class="pill" id="heroPill">✨ Schnell, klar, auf Reisen nutzbar · Features ein-/ausblendbar</div>
-          <div class="controls">
-            <div class="field"><label for="amount" id="amountLabel">Betrag</label><input id="amount" class="input amount" inputmode="decimal" value="250" placeholder="250" /></div>
-            <div class="field"><label for="search" id="searchLabel">Währung suchen</label><div class="searchwrap"><input id="search" class="input" placeholder="EUR, Dollar, CHF ..." /></div></div>
+
+          <div class="converter">
+            <div class="row">
+              <div class="left">
+                <label for="from" id="fromLabel">Von</label>
+                <select id="from" class="select"></select>
+              </div>
+              <input id="amount" class="amount" inputmode="decimal" value="250" placeholder="0" />
+            </div>
+
+            <button class="swap" id="swapBtn" type="button" aria-label="swap currencies">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l-4 4 4 4"></path><path d="M3 8h14"></path><path d="M17 20l4-4-4-4"></path><path d="M21 16H7"></path></svg>
+            </button>
+
+            <div class="row">
+              <div class="left">
+                <label for="to" id="toLabel">Nach</label>
+                <select id="to" class="select"></select>
+              </div>
+              <div class="compact-result">
+                <div class="compact-value" id="resultValue">0</div>
+                <div class="compact-sub" id="resultLabel">USD · US-Dollar</div>
+              </div>
+            </div>
           </div>
-          <div class="pair" style="margin-top:16px;">
-            <div class="field"><label for="from" id="fromLabel">Von</label><select id="from" class="select"></select></div>
-            <button class="swap" id="swapBtn" type="button" aria-label="swap currencies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"></path><path d="M8 21H3v-5"></path><path d="M21 3l-7 7"></path><path d="M3 21l7-7"></path></svg></button>
-            <div class="field"><label for="to" id="toLabel">Nach</label><select id="to" class="select"></select></div>
+
+          <div class="rate-card" id="rateLine">1 EUR = 1.00 USD</div>
+
+          <div class="actions">
+            <button class="btn primary" id="copyBtn" type="button">Kurs kopieren</button>
+            <button class="btn secondary" id="favBtn" type="button">Als Favorit</button>
           </div>
-          <div class="currency-strip" id="currencyStrip"></div>
-          <div class="location-banner">
-            <div><strong id="locationTitle">Standort nicht aktiv</strong><span id="locationSubtitle">Optional GPS freigeben, um lokale Orte anzuzeigen.</span></div>
-            <div class="toolbar"><button class="btn secondary" id="geoBtn" type="button">📍 Standort holen</button><button class="btn primary" id="nearBtn" type="button">🔎 Nearby</button></div>
-          </div>
-        </div>
-        <div class="card-inner">
-          <div class="result"><div class="big" id="resultValue">0</div><div class="small" id="resultLabel">USD · US-Dollar</div></div>
-          <div class="kpis">
-            <div class="kpi"><div class="label" id="kpiResultLabel">🧮 Ergebnis</div><div class="value" id="kpiResult">0 USD</div></div>
-            <div class="kpi"><div class="label" id="kpiRateLabel">📈 Kurs</div><div class="value" id="kpiRate">1.00</div></div>
-            <div class="kpi"><div class="label" id="kpiFavLabel">⭐ Favoriten</div><div class="value" id="kpiFav">4</div></div>
-          </div>
-          <div class="actions"><button class="btn primary" id="copyBtn" type="button">Kurs kopieren</button><button class="btn secondary" id="favBtn" type="button">Als Favorit</button></div>
-          <div class="footer-note" id="rateLine">1 EUR = 1.00 USD</div>
+
+          <div class="mini-note" id="localCurrencySub">Nach GPS-Freigabe wird ein Vorschlag angezeigt.</div>
         </div>
       </section>
 
       <aside class="sidebar">
+        <section class="card">
+          <div class="card-inner">
+            <div class="section-head">
+              <div>
+                <h2 id="favoritesTitle">⭐ Schnellzugriff</h2>
+                <div class="hint" id="favoritesHint">Favoriten per Tap</div>
+              </div>
+              <div class="hint">Auto</div>
+            </div>
+            <div class="chips" id="favorites"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-inner">
+            <div class="section-head">
+              <div>
+                <h2 id="historyTitle">🕘 Verlauf</h2>
+                <div class="hint" id="historyHint">Zuletzt genutzt</div>
+              </div>
+              <div class="hint" id="autosave">Auto-Speicher</div>
+            </div>
+            <div class="mini-list" id="history"></div>
+          </div>
+        </section>
+
         <section class="module-card">
           <div class="module-inner">
             <div class="section-head">
-              <div><h2 id="optionsTitle">⚙️ Optionen</h2><div class="hint" id="optionsHint">Was sichtbar ist, entscheidest du selbst.</div></div>
+              <div>
+                <h2 id="optionsTitle">⚙️ Optionen</h2>
+                <div class="hint" id="optionsHint">Was sichtbar ist, entscheidest du selbst.</div>
+              </div>
               <div class="tiny" id="allOptional">Alles ist optional</div>
             </div>
             <div class="module-grid">
               <div class="module"><div class="module-top"><div><div class="module-title" id="modMapTitle">🗺 Karte & Nearby</div><div class="module-desc" id="modMapDesc">GPS, Karte und Orte in der Nähe: Geldautomaten, Restaurants, Bars, Cafés.</div></div><label class="switch"><input id="modMap" type="checkbox" checked><span class="slider"></span></label></div><div class="module-tags"><span class="tag">GPS</span><span class="tag" id="tagMap">Karte</span><span class="tag" id="tagPlaces">Orte</span></div></div>
               <div class="module"><div class="module-top"><div><div class="module-title" id="modFavTitle">⭐ Favoriten & Verlauf</div><div class="module-desc" id="modFavDesc">Schneller Zugriff auf deine wichtigsten Währungen.</div></div><label class="switch"><input id="modFav" type="checkbox" checked><span class="slider"></span></label></div><div class="module-tags"><span class="tag" id="tagTap">Tap</span><span class="tag" id="tagHistory">Verlauf</span><span class="tag" id="tagSwitch">Quick Switch</span></div></div>
               <div class="module"><div class="module-top"><div><div class="module-title" id="modExtrasTitle">🧭 Reise-Helfer</div><div class="module-desc" id="modExtrasDesc">Trinkgeld, Wetter, Notizen oder Preisvergleich könnten hier später dazukommen.</div></div><label class="switch"><input id="modExtras" type="checkbox"><span class="slider"></span></label></div><div class="module-tags"><span class="tag" id="tagLater">Später aktivierbar</span></div></div>
-              <div class="module"><div class="module-top"><div><div class="module-title" id="modIntlTitle">🌐 Sprache</div><div class="module-desc" id="modIntlDesc">Die Oberfläche wechselt live. Browser-Sprache wird gespeichert.</div></div><label class="switch"><input id="modIntl" type="checkbox" checked><span class="slider"></span></label></div><div class="module-tags"><span class="tag">DE / EN / ES</span><span class="tag">PT / FR / IT</span><span class="tag">+ weitere</span></div></div>
+              <div class="module"><div class="module-top"><div><div class="module-title" id="modIntlTitle">🌐 Sprache</div><div class="module-desc" id="modIntlDesc">Die Oberfläche wechselt live und speichert die Browser-Sprache.</div></div><label class="switch"><input id="modIntl" type="checkbox" checked><span class="slider"></span></label></div><div class="module-tags"><span class="tag">DE / EN / ES</span><span class="tag">PT / FR / IT</span><span class="tag">+ weitere</span></div></div>
             </div>
           </div>
         </section>
-
-        <section class="card"><div class="card-inner"><div class="section-head"><div><h2 id="favoritesTitle">⭐ Schnellzugriff</h2><div class="hint" id="favoritesHint">Favoriten per Tap</div></div></div><div class="chips" id="favorites"></div></div></section>
-        <section class="card"><div class="card-inner"><div class="section-head"><div><h2 id="historyTitle">🕘 Verlauf</h2><div class="hint" id="historyHint">Zuletzt genutzt</div></div><div class="hint" id="autosave">Auto-Speicher</div></div><div class="mini-list" id="history"></div></div></section>
       </aside>
     </div>
 
-    <section class="card hide" id="mapSection" style="margin-top:18px;">
+    <section class="card hide" id="mapSection" style="margin-top:12px;">
       <div class="card-inner">
-        <div class="section-head"><div><h2 id="mapTitle">🗺 Karte & Nearby</h2><div class="hint" id="mapHint">Nur sichtbar, wenn du es aktiviert hast.</div></div><div class="tiny" id="nearbyStatus">Noch kein Standort geladen</div></div>
-        <div class="location-banner"><div><strong id="localCurrencyHint">Lokale Währung: –</strong><span id="localCurrencySub">Nach GPS-Freigabe wird ein Vorschlag angezeigt.</span></div><div class="tiny" id="osmNote">OpenStreetMap / Overpass</div></div>
+        <div class="section-head">
+          <div>
+            <h2 id="mapTitle">🗺 Karte & Nearby</h2>
+            <div class="hint" id="mapHint">Nur sichtbar, wenn du es aktiviert hast.</div>
+          </div>
+          <div class="tiny" id="nearbyStatus">Noch kein Standort geladen</div>
+        </div>
+        <div class="location-banner">
+          <div><strong id="localCurrencyHint">Lokale Währung: –</strong><span id="osmNote">OpenStreetMap / Overpass</span></div>
+          <div class="tiny" id="poiNote">Die Liste folgt nur den aktivierten Kategorien.</div>
+        </div>
         <div class="map-shell">
           <div class="panel"><div id="map"></div></div>
           <div class="panel poi-panel">
-            <div class="poi-controls"><button class="poi-chip active" data-poi="atm">🏧 ATM</button><button class="poi-chip active" data-poi="food">🍽 Essen</button><button class="poi-chip active" data-poi="drink">🍸 Bars</button><button class="poi-chip" data-poi="cafe">☕ Cafés</button><button class="poi-chip" data-poi="hotel">🛏 Hotel</button></div>
-            <div class="tiny" id="poiNote" style="margin-bottom:10px;">Die Liste folgt nur den aktivierten Kategorien.</div>
-            <div class="poi-list" id="poiList"><div class="poi-item"><div class="poi-name">Noch keine Orte geladen</div><div class="poi-meta">Erst Standort freigeben und dann „Nearby“ tippen.</div></div></div>
+            <div class="poi-controls">
+              <button class="poi-chip active" data-poi="atm">🏧 ATM</button>
+              <button class="poi-chip active" data-poi="food">🍽 Essen</button>
+              <button class="poi-chip active" data-poi="drink">🍸 Bars</button>
+              <button class="poi-chip" data-poi="cafe">☕ Cafés</button>
+              <button class="poi-chip" data-poi="hotel">🛏 Hotel</button>
+            </div>
+            <div class="poi-list" id="poiList">
+              <div class="poi-item"><div class="poi-name">Noch keine Orte geladen</div><div class="poi-meta">Erst Standort freigeben und dann „Nearby“ tippen.</div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -156,162 +281,95 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const LANGS = {
-      de:{label:'Deutsch',subtitle:'Intuitiver Währungs- und Travel-Companion mit optionalen Modulen.',heroPill:'✨ Schnell, klar, auf Reisen nutzbar · Features ein-/ausblendbar',amountLabel:'Betrag',searchLabel:'Währung suchen',fromLabel:'Von',toLabel:'Nach',locationTitle:'Standort nicht aktiv',locationSubtitle:'Optional GPS freigeben, um lokale Orte anzuzeigen.',geoBtn:'📍 Standort holen',nearBtn:'🔎 Nearby',kpiResultLabel:'🧮 Ergebnis',kpiRateLabel:'📈 Kurs',kpiFavLabel:'⭐ Favoriten',copyBtn:'Kurs kopieren',favBtn:'Als Favorit',optionsTitle:'⚙️ Optionen',optionsHint:'Was sichtbar ist, entscheidest du selbst.',allOptional:'Alles ist optional',modMapTitle:'🗺 Karte & Nearby',modMapDesc:'GPS, Karte und Orte in der Nähe: Geldautomaten, Restaurants, Bars, Cafés.',tagMap:'Karte',tagPlaces:'Orte',modFavTitle:'⭐ Favoriten & Verlauf',modFavDesc:'Schneller Zugriff auf deine wichtigsten Währungen.',tagTap:'Tap',tagHistory:'Verlauf',tagSwitch:'Quick Switch',modExtrasTitle:'🧭 Reise-Helfer',modExtrasDesc:'Trinkgeld, Wetter, Notizen oder Preisvergleich könnten hier später dazukommen.',tagLater:'Später aktivierbar',modIntlTitle:'🌐 Sprache',modIntlDesc:'Die Oberfläche wechselt live. Browser-Sprache wird gespeichert.',favoritesTitle:'⭐ Schnellzugriff',favoritesHint:'Favoriten per Tap',historyTitle:'🕘 Verlauf',historyHint:'Zuletzt genutzt',autosave:'Auto-Speicher',mapTitle:'🗺 Karte & Nearby',mapHint:'Nur sichtbar, wenn du es aktiviert hast.',osmNote:'OpenStreetMap / Overpass',poiNote:'Die Liste folgt nur den aktivierten Kategorien.',statusReady:'Bereit',statusText:'Kompaktmodus aktiv',localCurrency:'Lokale Währung:',localCurrencySub:'Nach GPS-Freigabe wird ein Vorschlag angezeigt.'},
-      en:{label:'English',subtitle:'An intuitive currency and travel companion with optional modules.',heroPill:'✨ Fast, clear, travel-friendly · show or hide features',amountLabel:'Amount',searchLabel:'Search currency',fromLabel:'From',toLabel:'To',locationTitle:'Location inactive',locationSubtitle:'Optionally allow GPS to show nearby places.',geoBtn:'📍 Get location',nearBtn:'🔎 Nearby',kpiResultLabel:'🧮 Result',kpiRateLabel:'📈 Rate',kpiFavLabel:'⭐ Favorites',copyBtn:'Copy rate',favBtn:'Save as favorite',optionsTitle:'⚙️ Options',optionsHint:'You decide what is visible.',allOptional:'Everything is optional',modMapTitle:'🗺 Map & Nearby',modMapDesc:'GPS, map and nearby places: ATMs, restaurants, bars, cafes.',tagMap:'Map',tagPlaces:'Places',modFavTitle:'⭐ Favorites & history',modFavDesc:'Quick access to your most important currencies.',tagTap:'Tap',tagHistory:'History',tagSwitch:'Quick Switch',modExtrasTitle:'🧭 Travel helper',modExtrasDesc:'Tip, weather, notes or price comparison can be added later.',tagLater:'Enable later',modIntlTitle:'🌐 Language',modIntlDesc:'The interface switches live and remembers your browser language.',favoritesTitle:'⭐ Quick access',favoritesHint:'Favorites by tap',historyTitle:'🕘 History',historyHint:'Recently used',autosave:'Auto-save',mapTitle:'🗺 Map & Nearby',mapHint:'Visible only when enabled.',osmNote:'OpenStreetMap / Overpass',poiNote:'The list follows only the active categories.',statusReady:'Ready',statusText:'Compact mode active',localCurrency:'Local currency:',localCurrencySub:'A suggestion appears after GPS permission.'},
-      es:{label:'Español',subtitle:'Un compañero intuitivo de divisas y viajes con módulos opcionales.',heroPill:'✨ Rápido, claro y útil para viajar · mostrar u ocultar funciones',amountLabel:'Importe',searchLabel:'Buscar moneda',fromLabel:'De',toLabel:'A',locationTitle:'Ubicación inactiva',locationSubtitle:'Permite GPS para mostrar lugares cercanos.',geoBtn:'📍 Obtener ubicación',nearBtn:'🔎 Cerca',kpiResultLabel:'🧮 Resultado',kpiRateLabel:'📈 Tipo',kpiFavLabel:'⭐ Favoritos',copyBtn:'Copiar tipo',favBtn:'Guardar favorito',optionsTitle:'⚙️ Opciones',optionsHint:'Tú decides qué se ve.',allOptional:'Todo es opcional',modMapTitle:'🗺 Mapa y cerca',modMapDesc:'GPS, mapa y lugares cercanos: cajeros, restaurantes, bares, cafés.',tagMap:'Mapa',tagPlaces:'Lugares',modFavTitle:'⭐ Favoritos e historial',modFavDesc:'Acceso rápido a tus monedas más importantes.',tagTap:'Toque',tagHistory:'Historial',tagSwitch:'Cambio rápido',modExtrasTitle:'🧭 Ayuda de viaje',modExtrasDesc:'Propinas, clima, notas o comparación de precios se pueden añadir después.',tagLater:'Activar después',modIntlTitle:'🌐 Idioma',modIntlDesc:'La interfaz cambia en vivo y recuerda el idioma del navegador.',favoritesTitle:'⭐ Acceso rápido',favoritesHint:'Favoritos al toque',historyTitle:'🕘 Historial',historyHint:'Usado recientemente',autosave:'Auto-guardado',mapTitle:'🗺 Mapa y cerca',mapHint:'Visible solo si está activado.',osmNote:'OpenStreetMap / Overpass',poiNote:'La lista sigue solo las categorías activas.',statusReady:'Listo',statusText:'Modo compacto activo',localCurrency:'Moneda local:',localCurrencySub:'La sugerencia aparece tras permitir GPS.'},
-      pt:{label:'Português',subtitle:'Um companheiro intuitivo de moeda e viagem com módulos opcionais.',heroPill:'✨ Rápido, claro e útil para viajar · mostrar ou ocultar funções',amountLabel:'Valor',searchLabel:'Procurar moeda',fromLabel:'De',toLabel:'Para',locationTitle:'Localização inativa',locationSubtitle:'Permita GPS para ver locais próximos.',geoBtn:'📍 Obter localização',nearBtn:'🔎 Próximo',kpiResultLabel:'🧮 Resultado',kpiRateLabel:'📈 Taxa',kpiFavLabel:'⭐ Favoritos',copyBtn:'Copiar taxa',favBtn:'Guardar favorito',optionsTitle:'⚙️ Opções',optionsHint:'Você decide o que fica visível.',allOptional:'Tudo é opcional',modMapTitle:'🗺 Mapa e perto',modMapDesc:'GPS, mapa e locais próximos: caixas, restaurantes, bares, cafés.',tagMap:'Mapa',tagPlaces:'Locais',modFavTitle:'⭐ Favoritos e histórico',modFavDesc:'Acesso rápido às suas moedas principais.',tagTap:'Toque',tagHistory:'Histórico',tagSwitch:'Troca rápida',modExtrasTitle:'🧭 Ajuda de viagem',modExtrasDesc:'Gorjeta, clima, notas ou comparação de preços podem ser adicionados depois.',tagLater:'Ativar depois',modIntlTitle:'🌐 Idioma',modIntlDesc:'A interface muda ao vivo e memoriza o idioma do navegador.',favoritesTitle:'⭐ Acesso rápido',favoritesHint:'Favoritos por toque',historyTitle:'🕘 Histórico',historyHint:'Usado recentemente',autosave:'Auto-salvar',mapTitle:'🗺 Mapa e perto',mapHint:'Visível apenas quando ativado.',osmNote:'OpenStreetMap / Overpass',poiNote:'A lista segue apenas as categorias ativas.',statusReady:'Pronto',statusText:'Modo compacto ativo',localCurrency:'Moeda local:',localCurrencySub:'A sugestão aparece após permitir o GPS.'},
-      fr:{label:'Français',subtitle:'Un compagnon intuitif pour les devises et les voyages avec modules optionnels.',heroPill:'✨ Rapide, clair et utile en voyage · afficher ou masquer les fonctions',amountLabel:'Montant',searchLabel:'Rechercher une devise',fromLabel:'De',toLabel:'À',locationTitle:'Localisation inactive',locationSubtitle:'Autorisez le GPS pour afficher les lieux à proximité.',geoBtn:'📍 Obtenir la position',nearBtn:'🔎 À proximité',kpiResultLabel:'🧮 Résultat',kpiRateLabel:'📈 Taux',kpiFavLabel:'⭐ Favoris',copyBtn:'Copier le taux',favBtn:'Ajouter aux favoris',optionsTitle:'⚙️ Options',optionsHint:'Vous décidez ce qui est visible.',allOptional:'Tout est optionnel',modMapTitle:'🗺 Carte et proximité',modMapDesc:'GPS, carte et lieux proches : distributeurs, restaurants, bars, cafés.',tagMap:'Carte',tagPlaces:'Lieux',modFavTitle:'⭐ Favoris et historique',modFavDesc:'Accès rapide à vos devises principales.',tagTap:'Tap',tagHistory:'Historique',tagSwitch:'Changement rapide',modExtrasTitle:'🧭 Aide voyage',modExtrasDesc:'Pourboires, météo, notes ou comparaison de prix peuvent être ajoutés plus tard.',tagLater:'Activer plus tard',modIntlTitle:'🌐 Langue',modIntlDesc:'L’interface change en direct et mémorise la langue du navigateur.',favoritesTitle:'⭐ Accès rapide',favoritesHint:'Favoris par tap',historyTitle:'🕘 Historique',historyHint:'Utilisé récemment',autosave:'Auto-sauvegarde',mapTitle:'🗺 Carte et proximité',mapHint:'Visible uniquement si activé.',osmNote:'OpenStreetMap / Overpass',poiNote:'La liste suit uniquement les catégories actives.',statusReady:'Prêt',statusText:'Mode compact actif',localCurrency:'Devise locale :',localCurrencySub:'La suggestion apparaît après autorisation GPS.'},
-      it:{label:'Italiano',subtitle:'Un compagno intuitivo per valute e viaggi con moduli opzionali.',heroPill:'✨ Veloce, chiaro e utile in viaggio · mostra o nascondi funzioni',amountLabel:'Importo',searchLabel:'Cerca valuta',fromLabel:'Da',toLabel:'A',locationTitle:'Posizione inattiva',locationSubtitle:'Consenti il GPS per mostrare i luoghi vicini.',geoBtn:'📍 Ottieni posizione',nearBtn:'🔎 Vicino',kpiResultLabel:'🧮 Risultato',kpiRateLabel:'📈 Tasso',kpiFavLabel:'⭐ Preferiti',copyBtn:'Copia tasso',favBtn:'Salva preferito',optionsTitle:'⚙️ Opzioni',optionsHint:'Decidi tu cosa è visibile.',allOptional:'Tutto è opzionale',modMapTitle:'🗺 Mappa e vicini',modMapDesc:'GPS, mappa e luoghi vicini: bancomat, ristoranti, bar, caffè.',tagMap:'Mappa',tagPlaces:'Luoghi',modFavTitle:'⭐ Preferiti e cronologia',modFavDesc:'Accesso rapido alle tue valute più importanti.',tagTap:'Tap',tagHistory:'Cronologia',tagSwitch:'Cambio rapido',modExtrasTitle:'🧭 Aiuto viaggio',modExtrasDesc:'Mancia, meteo, note o confronto prezzi possono essere aggiunti dopo.',tagLater:'Attiva dopo',modIntlTitle:'🌐 Lingua',modIntlDesc:'L’interfaccia cambia in tempo reale e memorizza la lingua del browser.',favoritesTitle:'⭐ Accesso rapido',favoritesHint:'Preferiti con un tap',historyTitle:'🕘 Cronologia',historyHint:'Usato di recente',autosave:'Salvataggio automatico',mapTitle:'🗺 Mappa e vicini',mapHint:'Visibile solo se attivato.',osmNote:'OpenStreetMap / Overpass',poiNote:'L’elenco segue solo le categorie attive.',statusReady:'Pronto',statusText:'Modalità compatta attiva',localCurrency:'Valuta locale:',localCurrencySub:'Il suggerimento appare dopo il permesso GPS.'},
-      nl:{label:'Nederlands',subtitle:'Een intuïtieve valuta- en reisgenoot met optionele modules.',heroPill:'✨ Snel, duidelijk en reisvriendelijk · functies tonen of verbergen',amountLabel:'Bedrag',searchLabel:'Valuta zoeken',fromLabel:'Van',toLabel:'Naar',locationTitle:'Locatie inactief',locationSubtitle:'Sta GPS toe om nabijgelegen plekken te tonen.',geoBtn:'📍 Locatie ophalen',nearBtn:'🔎 In de buurt',kpiResultLabel:'🧮 Resultaat',kpiRateLabel:'📈 Koers',kpiFavLabel:'⭐ Favorieten',copyBtn:'Koers kopiëren',favBtn:'Als favoriet opslaan',optionsTitle:'⚙️ Opties',optionsHint:'Jij bepaalt wat zichtbaar is.',allOptional:'Alles is optioneel',modMapTitle:'🗺 Kaart & dichtbij',modMapDesc:'GPS, kaart en nabijgelegen plaatsen: geldautomaten, restaurants, bars, cafés.',tagMap:'Kaart',tagPlaces:'Plaatsen',modFavTitle:'⭐ Favorieten & geschiedenis',modFavDesc:'Snelle toegang tot je belangrijkste valuta.',tagTap:'Tap',tagHistory:'Geschiedenis',tagSwitch:'Snel wisselen',modExtrasTitle:'🧭 Reisassistent',modExtrasDesc:'Fooi, weer, notities of prijsvergelijking kunnen later worden toegevoegd.',tagLater:'Later inschakelen',modIntlTitle:'🌐 Taal',modIntlDesc:'De interface wisselt live en onthoudt de browsertaal.',favoritesTitle:'⭐ Snelle toegang',favoritesHint:'Favorieten via tap',historyTitle:'🕘 Geschiedenis',historyHint:'Recent gebruikt',autosave:'Automatisch opslaan',mapTitle:'🗺 Kaart & dichtbij',mapHint:'Alleen zichtbaar wanneer ingeschakeld.',osmNote:'OpenStreetMap / Overpass',poiNote:'De lijst volgt alleen de actieve categorieën.',statusReady:'Klaar',statusText:'Compacte modus actief',localCurrency:'Lokale valuta:',localCurrencySub:'Na GPS-toestemming verschijnt een suggestie.'},
-      pl:{label:'Polski',subtitle:'Intuicyjny towarzysz walutowy i podróżny z opcjonalnymi modułami.',heroPill:'✨ Szybko, jasno i wygodnie w podróży · pokazuj lub ukrywaj funkcje',amountLabel:'Kwota',searchLabel:'Szukaj waluty',fromLabel:'Z',toLabel:'Na',locationTitle:'Lokalizacja nieaktywna',locationSubtitle:'Zezwól na GPS, aby pokazać pobliskie miejsca.',geoBtn:'📍 Pobierz lokalizację',nearBtn:'🔎 W pobliżu',kpiResultLabel:'🧮 Wynik',kpiRateLabel:'📈 Kurs',kpiFavLabel:'⭐ Ulubione',copyBtn:'Kopiuj kurs',favBtn:'Dodaj do ulubionych',optionsTitle:'⚙️ Opcje',optionsHint:'Ty decydujesz, co jest widoczne.',allOptional:'Wszystko jest opcjonalne',modMapTitle:'🗺 Mapa i okolica',modMapDesc:'GPS, mapa i pobliskie miejsca: bankomaty, restauracje, bary, kawiarnie.',tagMap:'Mapa',tagPlaces:'Miejsca',modFavTitle:'⭐ Ulubione i historia',modFavDesc:'Szybki dostęp do najważniejszych walut.',tagTap:'Tap',tagHistory:'Historia',tagSwitch:'Szybka zmiana',modExtrasTitle:'🧭 Pomoc podróżna',modExtrasDesc:'Napiwki, pogoda, notatki lub porównanie cen można dodać później.',tagLater:'Włącz później',modIntlTitle:'🌐 Język',modIntlDesc:'Interfejs przełącza się na żywo i pamięta język przeglądarki.',favoritesTitle:'⭐ Szybki dostęp',favoritesHint:'Ulubione jednym tapnięciem',historyTitle:'🕘 Historia',historyHint:'Ostatnio używane',autosave:'Automatyczny zapis',mapTitle:'🗺 Mapa i okolica',mapHint:'Widoczne tylko po włączeniu.',osmNote:'OpenStreetMap / Overpass',poiNote:'Lista pokazuje tylko aktywne kategorie.',statusReady:'Gotowe',statusText:'Tryb kompaktowy aktywny',localCurrency:'Waluta lokalna:',localCurrencySub:'Po zgodzie na GPS pojawi się sugestia.'},
-      sv:{label:'Svenska',subtitle:'En intuitiv valuta- och resekompis med valfria moduler.',heroPill:'✨ Snabb, tydlig och resevänlig · visa eller göm funktioner',amountLabel:'Belopp',searchLabel:'Sök valuta',fromLabel:'Från',toLabel:'Till',locationTitle:'Plats inaktiv',locationSubtitle:'Tillåt GPS för att visa närliggande platser.',geoBtn:'📍 Hämta plats',nearBtn:'🔎 I närheten',kpiResultLabel:'🧮 Resultat',kpiRateLabel:'📈 Kurs',kpiFavLabel:'⭐ Favoriter',copyBtn:'Kopiera kurs',favBtn:'Spara som favorit',optionsTitle:'⚙️ Alternativ',optionsHint:'Du bestämmer vad som ska synas.',allOptional:'Allt är valfritt',modMapTitle:'🗺 Karta & nära',modMapDesc:'GPS, karta och platser i närheten: bankomater, restauranger, barer, kaféer.',tagMap:'Karta',tagPlaces:'Platser',modFavTitle:'⭐ Favoriter & historik',modFavDesc:'Snabb åtkomst till dina viktigaste valutor.',tagTap:'Tap',tagHistory:'Historik',tagSwitch:'Snabb växling',modExtrasTitle:'🧭 Reshjälp',modExtrasDesc:'Dricks, väder, anteckningar eller prisjämförelse kan läggas till senare.',tagLater:'Aktivera senare',modIntlTitle:'🌐 Språk',modIntlDesc:'Gränssnittet byts live och minns webbläsarspråket.',favoritesTitle:'⭐ Snabb åtkomst',favoritesHint:'Favoriter med tap',historyTitle:'🕘 Historik',historyHint:'Nyligen använt',autosave:'Autospara',mapTitle:'🗺 Karta & nära',mapHint:'Synlig endast när den är aktiverad.',osmNote:'OpenStreetMap / Overpass',poiNote:'Listan följer bara aktiva kategorier.',statusReady:'Klar',statusText:'Kompaktläge aktivt',localCurrency:'Lokal valuta:',localCurrencySub:'Efter GPS-tillstånd visas ett förslag.'},
-      no:{label:'Norsk',subtitle:'En intuitiv valuta- og reisekamerat med valgfrie moduler.',heroPill:'✨ Rask, tydelig og reisvennlig · vis eller skjul funksjoner',amountLabel:'Beløp',searchLabel:'Søk valuta',fromLabel:'Fra',toLabel:'Til',locationTitle:'Sted inaktivt',locationSubtitle:'Tillat GPS for å vise steder i nærheten.',geoBtn:'📍 Hent sted',nearBtn:'🔎 I nærheten',kpiResultLabel:'🧮 Resultat',kpiRateLabel:'📈 Kurs',kpiFavLabel:'⭐ Favoritter',copyBtn:'Kopier kurs',favBtn:'Lagre som favoritt',optionsTitle:'⚙️ Alternativer',optionsHint:'Du bestemmer hva som vises.',allOptional:'Alt er valgfritt',modMapTitle:'🗺 Kart og nærhet',modMapDesc:'GPS, kart og steder i nærheten: minibanker, restauranter, barer, kafeer.',tagMap:'Kart',tagPlaces:'Steder',modFavTitle:'⭐ Favoritter og historikk',modFavDesc:'Rask tilgang til de viktigste valutaene dine.',tagTap:'Tap',tagHistory:'Historikk',tagSwitch:'Hurtigbytte',modExtrasTitle:'🧭 Rehjelp',modExtrasDesc:'Tips, vær, notater eller prissammenligning kan legges til senere.',tagLater:'Aktiver senere',modIntlTitle:'🌐 Språk',modIntlDesc:'Grensesnittet bytter live og husker nettleserspråket.',favoritesTitle:'⭐ Hurtigtilgang',favoritesHint:'Favoritter med trykk',historyTitle:'🕘 Historikk',historyHint:'Nylig brukt',autosave:'Autospar',mapTitle:'🗺 Kart og nærhet',mapHint:'Synlig bare når aktivert.',osmNote:'OpenStreetMap / Overpass',poiNote:'Listen følger bare aktive kategorier.',statusReady:'Klar',statusText:'Kompaktmodus aktiv',localCurrency:'Lokal valuta:',localCurrencySub:'Et forslag vises etter GPS-tillatelse.'},
-      da:{label:'Dansk',subtitle:'En intuitiv valuta- og rejseassistent med valgfrie moduler.',heroPill:'✨ Hurtig, klart og rejsevenligt · vis eller skjul funktioner',amountLabel:'Beløb',searchLabel:'Søg valuta',fromLabel:'Fra',toLabel:'Til',locationTitle:'Placering inaktiv',locationSubtitle:'Tillad GPS for at vise steder i nærheden.',geoBtn:'📍 Hent placering',nearBtn:'🔎 I nærheden',kpiResultLabel:'🧮 Resultat',kpiRateLabel:'📈 Kurs',kpiFavLabel:'⭐ Favoritter',copyBtn:'Kopiér kurs',favBtn:'Gem som favorit',optionsTitle:'⚙️ Indstillinger',optionsHint:'Du bestemmer, hvad der vises.',allOptional:'Alt er valgfrit',modMapTitle:'🗺 Kort & nærhed',modMapDesc:'GPS, kort og steder i nærheden: hæveautomater, restauranter, barer, caféer.',tagMap:'Kort',tagPlaces:'Steder',modFavTitle:'⭐ Favoritter & historik',modFavDesc:'Hurtig adgang til dine vigtigste valutaer.',tagTap:'Tap',tagHistory:'Historik',tagSwitch:'Hurtigt skift',modExtrasTitle:'🧭 Rejsehjælp',modExtrasDesc:'Drikkepenge, vejr, noter eller prissammenligning kan tilføjes senere.',tagLater:'Aktiver senere',modIntlTitle:'🌐 Sprog',modIntlDesc:'Interfacet skifter live og husker browsersproget.',favoritesTitle:'⭐ Hurtig adgang',favoritesHint:'Favoritter med tap',historyTitle:'🕘 Historik',historyHint:'Senest brugt',autosave:'Auto-gem',mapTitle:'🗺 Kort & nærhed',mapHint:'Kun synlig når aktiveret.',osmNote:'OpenStreetMap / Overpass',poiNote:'Listen følger kun aktive kategorier.',statusReady:'Klar',statusText:'Kompakt tilstand aktiv',localCurrency:'Lokal valuta:',localCurrencySub:'Et forslag vises efter GPS-tilladelse.'},
-      fi:{label:'Suomi',subtitle:'Intuitiivinen valuutta- ja matkakumppani valinnaisilla moduuleilla.',heroPill:'✨ Nopea, selkeä ja matkaystävällinen · näytä tai piilota ominaisuuksia',amountLabel:'Määrä',searchLabel:'Hae valuutta',fromLabel:'Mistä',toLabel:'Mihin',locationTitle:'Sijainti ei aktiivinen',locationSubtitle:'Salli GPS näyttääksesi lähistön kohteet.',geoBtn:'📍 Hae sijainti',nearBtn:'🔎 Lähellä',kpiResultLabel:'🧮 Tulos',kpiRateLabel:'📈 Kurssi',kpiFavLabel:'⭐ Suosikit',copyBtn:'Kopioi kurssi',favBtn:'Tallenna suosikiksi',optionsTitle:'⚙️ Asetukset',optionsHint:'Sinä päätät, mitä näkyy.',allOptional:'Kaikki on valinnaista',modMapTitle:'🗺 Kartta & lähellä',modMapDesc:'GPS, kartta ja lähellä olevat paikat: pankkiautomaatit, ravintolat, baarit, kahvilat.',tagMap:'Kartta',tagPlaces:'Paikat',modFavTitle:'⭐ Suosikit & historia',modFavDesc:'Nopea pääsy tärkeimpiin valuuttoihisi.',tagTap:'Napauta',tagHistory:'Historia',tagSwitch:'Nopea vaihto',modExtrasTitle:'🧭 Matka-apuri',modExtrasDesc:'Tipit, sää, muistiinpanot tai hintavertailu voidaan lisätä myöhemmin.',tagLater:'Ota käyttöön myöhemmin',modIntlTitle:'🌐 Kieli',modIntlDesc:'Käyttöliittymä vaihtuu lennossa ja muistaa selaimen kielen.',favoritesTitle:'⭐ Pikakäyttö',favoritesHint:'Suosikit napauttamalla',historyTitle:'🕘 Historia',historyHint:'Viimeksi käytetty',autosave:'Automaattinen tallennus',mapTitle:'🗺 Kartta & lähellä',mapHint:'Näkyy vain kun käytössä.',osmNote:'OpenStreetMap / Overpass',poiNote:'Lista näyttää vain aktiiviset kategoriat.',statusReady:'Valmis',statusText:'Kompakti tila aktiivinen',localCurrency:'Paikallinen valuutta:',localCurrencySub:'Ehdotus näkyy GPS-luvan jälkeen.'},
-      cs:{label:'Čeština',subtitle:'Intuitivní měnový a cestovní společník s volitelnými moduly.',heroPill:'✨ Rychlé, přehledné a vhodné na cesty · zobrazit nebo skrýt funkce',amountLabel:'Částka',searchLabel:'Hledat měnu',fromLabel:'Z',toLabel:'Na',locationTitle:'Poloha neaktivní',locationSubtitle:'Povolte GPS pro zobrazení míst v okolí.',geoBtn:'📍 Získat polohu',nearBtn:'🔎 V okolí',kpiResultLabel:'🧮 Výsledek',kpiRateLabel:'📈 Kurz',kpiFavLabel:'⭐ Oblíbené',copyBtn:'Kopírovat kurz',favBtn:'Uložit jako oblíbené',optionsTitle:'⚙️ Možnosti',optionsHint:'Vy rozhodujete, co je viditelné.',allOptional:'Vše je volitelné',modMapTitle:'🗺 Mapa a okolí',modMapDesc:'GPS, mapa a místa v okolí: bankomaty, restaurace, bary, kavárny.',tagMap:'Mapa',tagPlaces:'Místa',modFavTitle:'⭐ Oblíbené a historie',modFavDesc:'Rychlý přístup k vašim nejdůležitějším měnám.',tagTap:'Tap',tagHistory:'Historie',tagSwitch:'Rychlé přepnutí',modExtrasTitle:'🧭 Pomocník na cesty',modExtrasDesc:'Spropitné, počasí, poznámky nebo srovnání cen lze přidat později.',tagLater:'Povolit později',modIntlTitle:'🌐 Jazyk',modIntlDesc:'Rozhraní se přepíná živě a pamatuje si jazyk prohlížeče.',favoritesTitle:'⭐ Rychlý přístup',favoritesHint:'Oblíbené jedním klepnutím',historyTitle:'🕘 Historie',historyHint:'Naposledy použité',autosave:'Automatické ukládání',mapTitle:'🗺 Mapa a okolí',mapHint:'Viditelné pouze po aktivaci.',osmNote:'OpenStreetMap / Overpass',poiNote:'Seznam zobrazuje pouze aktivní kategorie.',statusReady:'Připraveno',statusText:'Kompaktní režim aktivní',localCurrency:'Místní měna:',localCurrencySub:'Po povolení GPS se zobrazí návrh.'},
-      hu:{label:'Magyar',subtitle:'Intuitív valuta- és utazási társ választható modulokkal.',heroPill:'✨ Gyors, tiszta és utazásbarát · funkciók megjelenítése/elrejtése',amountLabel:'Összeg',searchLabel:'Pénznem keresése',fromLabel:'Erről',toLabel:'Erre',locationTitle:'Hely nincs aktiválva',locationSubtitle:'Engedélyezd a GPS-t a közeli helyek megjelenítéséhez.',geoBtn:'📍 Hely lekérése',nearBtn:'🔎 A közelben',kpiResultLabel:'🧮 Eredmény',kpiRateLabel:'📈 Árfolyam',kpiFavLabel:'⭐ Kedvencek',copyBtn:'Árfolyam másolása',favBtn:'Mentés kedvencként',optionsTitle:'⚙️ Beállítások',optionsHint:'Te döntöd el, mi látszik.',allOptional:'Minden opcionális',modMapTitle:'🗺 Térkép és közelben',modMapDesc:'GPS, térkép és közeli helyek: ATM-ek, éttermek, bárok, kávézók.',tagMap:'Térkép',tagPlaces:'Helyek',modFavTitle:'⭐ Kedvencek és előzmény',modFavDesc:'Gyors hozzáférés a legfontosabb pénznemekhez.',tagTap:'Érintés',tagHistory:'Előzmény',tagSwitch:'Gyors váltás',modExtrasTitle:'🧭 Utazási segéd',modExtrasDesc:'Borravaló, időjárás, jegyzetek vagy ár-összehasonlítás később hozzáadható.',tagLater:'Később engedélyezhető',modIntlTitle:'🌐 Nyelv',modIntlDesc:'A felület élőben vált és megjegyzi a böngésző nyelvét.',favoritesTitle:'⭐ Gyors hozzáférés',favoritesHint:'Kedvencek érintéssel',historyTitle:'🕘 Előzmény',historyHint:'Legutóbb használt',autosave:'Automatikus mentés',mapTitle:'🗺 Térkép és közelben',mapHint:'Csak aktiválás után látható.',osmNote:'OpenStreetMap / Overpass',poiNote:'A lista csak az aktív kategóriákat mutatja.',statusReady:'Kész',statusText:'Kompakt mód aktív',localCurrency:'Helyi pénznem:',localCurrencySub:'A GPS engedély után javaslat jelenik meg.'},
-      ro:{label:'Română',subtitle:'Un companion intuitiv pentru valute și călătorii, cu module opționale.',heroPill:'✨ Rapid, clar și util în călătorii · afișează sau ascunde funcțiile',amountLabel:'Sumă',searchLabel:'Caută valută',fromLabel:'Din',toLabel:'În',locationTitle:'Locație inactivă',locationSubtitle:'Permite GPS pentru a afișa locurile din apropiere.',geoBtn:'📍 Obține locația',nearBtn:'🔎 În apropiere',kpiResultLabel:'🧮 Rezultat',kpiRateLabel:'📈 Curs',kpiFavLabel:'⭐ Favorite',copyBtn:'Copiază cursul',favBtn:'Salvează ca favorit',optionsTitle:'⚙️ Opțiuni',optionsHint:'Tu decizi ce este vizibil.',allOptional:'Totul este opțional',modMapTitle:'🗺 Hartă și aproape',modMapDesc:'GPS, hartă și locuri din apropiere: bancomate, restaurante, baruri, cafenele.',tagMap:'Hartă',tagPlaces:'Locuri',modFavTitle:'⭐ Favorite și istoric',modFavDesc:'Acces rapid la cele mai importante valute.',tagTap:'Tap',tagHistory:'Istoric',tagSwitch:'Schimb rapid',modExtrasTitle:'🧭 Ajutor de călătorie',modExtrasDesc:'Bacșiș, vreme, notițe sau comparații de preț pot fi adăugate mai târziu.',tagLater:'Activează mai târziu',modIntlTitle:'🌐 Limbă',modIntlDesc:'Interfața se schimbă live și memorează limba browserului.',favoritesTitle:'⭐ Acces rapid',favoritesHint:'Favorite prin tap',historyTitle:'🕘 Istoric',historyHint:'Folosit recent',autosave:'Salvare automată',mapTitle:'🗺 Hartă și aproape',mapHint:'Vizibil doar când este activat.',osmNote:'OpenStreetMap / Overpass',poiNote:'Lista urmărește doar categoriile active.',statusReady:'Pregătit',statusText:'Mod compact activ',localCurrency:'Monedă locală:',localCurrencySub:'După permisiunea GPS apare o sugestie.'},
-      sk:{label:'Slovenčina',subtitle:'Intuitívny menový a cestovný spoločník s voliteľnými modulmi.',heroPill:'✨ Rýchly, prehľadný a vhodný na cesty · zobraziť alebo skryť funkcie',amountLabel:'Suma',searchLabel:'Hľadať menu',fromLabel:'Z',toLabel:'Na',locationTitle:'Poloha neaktívna',locationSubtitle:'Povoľte GPS na zobrazenie miest v okolí.',geoBtn:'📍 Získať polohu',nearBtn:'🔎 V okolí',kpiResultLabel:'🧮 Výsledok',kpiRateLabel:'📈 Kurz',kpiFavLabel:'⭐ Obľúbené',copyBtn:'Kopírovať kurz',favBtn:'Uložiť ako obľúbené',optionsTitle:'⚙️ Možnosti',optionsHint:'Vy rozhodujete, čo je viditeľné.',allOptional:'Všetko je voliteľné',modMapTitle:'🗺 Mapa a okolie',modMapDesc:'GPS, mapa a miesta v okolí: bankomaty, reštaurácie, bary, kaviarne.',tagMap:'Mapa',tagPlaces:'Miesta',modFavTitle:'⭐ Obľúbené a história',modFavDesc:'Rýchly prístup k vašim najdôležitejším menám.',tagTap:'Tap',tagHistory:'História',tagSwitch:'Rýchle prepnutie',modExtrasTitle:'🧭 Pomocník na cesty',modExtrasDesc:'Spropitné, počasie, poznámky alebo porovnanie cien možno pridať neskôr.',tagLater:'Povoliť neskôr',modIntlTitle:'🌐 Jazyk',modIntlDesc:'Rozhranie sa prepína naživo a pamätá si jazyk prehliadača.',favoritesTitle:'⭐ Rýchly prístup',favoritesHint:'Obľúbené jedným ťuknutím',historyTitle:'🕘 História',historyHint:'Naposledy použité',autosave:'Automatické uloženie',mapTitle:'🗺 Mapa a okolie',mapHint:'Viditeľné len po aktivácii.',osmNote:'OpenStreetMap / Overpass',poiNote:'Zoznam zobrazuje iba aktívne kategórie.',statusReady:'Pripravené',statusText:'Kompaktný režim aktívny',localCurrency:'Miestna mena:',localCurrencySub:'Po povolení GPS sa zobrazí návrh.'},
-      sl:{label:'Slovenščina',subtitle:'Intuitiven spremljevalec za valute in potovanja z neobveznimi moduli.',heroPill:'✨ Hitro, jasno in prijazno za potovanja · pokaži ali skrij funkcije',amountLabel:'Znesek',searchLabel:'Išči valuto',fromLabel:'Iz',toLabel:'V',locationTitle:'Lokacija ni aktivna',locationSubtitle:'Dovoli GPS za prikaz bližnjih krajev.',geoBtn:'📍 Pridobi lokacijo',nearBtn:'🔎 V bližini',kpiResultLabel:'🧮 Rezultat',kpiRateLabel:'📈 Tečaj',kpiFavLabel:'⭐ Priljubljeno',copyBtn:'Kopiraj tečaj',favBtn:'Shrani med priljubljene',optionsTitle:'⚙️ Možnosti',optionsHint:'Ti odločaš, kaj je vidno.',allOptional:'Vse je izbirno',modMapTitle:'🗺 Zemljevid in blizu',modMapDesc:'GPS, zemljevid in bližnja mesta: bankomati, restavracije, bari, kavarne.',tagMap:'Zemljevid',tagPlaces:'Mesta',modFavTitle:'⭐ Priljubljeno in zgodovina',modFavDesc:'Hiter dostop do najpomembnejših valut.',tagTap:'Tap',tagHistory:'Zgodovina',tagSwitch:'Hitra menjava',modExtrasTitle:'🧭 Potovalni pomočnik',modExtrasDesc:'Napitnine, vreme, zapiski ali primerjava cen se lahko dodajo kasneje.',tagLater:'Omogoči kasneje',modIntlTitle:'🌐 Jezik',modIntlDesc:'Vmesnik se preklopi v živo in si zapomni jezik brskalnika.',favoritesTitle:'⭐ Hiter dostop',favoritesHint:'Priljubljene z dotikom',historyTitle:'🕘 Zgodovina',historyHint:'Nedavno uporabljeno',autosave:'Samodejno shranjevanje',mapTitle:'🗺 Zemljevid in blizu',mapHint:'Vidno samo, če je omogočeno.',osmNote:'OpenStreetMap / Overpass',poiNote:'Seznam prikazuje samo aktivne kategorije.',statusReady:'Pripravljeno',statusText:'Kompaktni način aktiven',localCurrency:'Lokalna valuta:',localCurrencySub:'Po dovoljenju GPS se pojavi predlog.'},
-      hr:{label:'Hrvatski',subtitle:'Višejezični putni suputnik s opcionalnim modulima.',heroPill:'✨ Brzo, jasno i korisno na putovanju · prikaži ili sakrij funkcije',amountLabel:'Iznos',searchLabel:'Traži valutu',fromLabel:'Iz',toLabel:'U',locationTitle:'Lokacija nije aktivna',locationSubtitle:'Dopusti GPS za prikaz mjesta u blizini.',geoBtn:'📍 Dohvati lokaciju',nearBtn:'🔎 U blizini',kpiResultLabel:'🧮 Rezultat',kpiRateLabel:'📈 Tečaj',kpiFavLabel:'⭐ Favoriti',copyBtn:'Kopiraj tečaj',favBtn:'Spremi kao favorit',optionsTitle:'⚙️ Opcije',optionsHint:'Ti odlučuješ što je vidljivo.',allOptional:'Sve je opcionalno',modMapTitle:'🗺 Karta i blizu',modMapDesc:'GPS, karta i mjesta u blizini: bankomati, restorani, barovi, kafići.',tagMap:'Karta',tagPlaces:'Mjesta',modFavTitle:'⭐ Favoriti i povijest',modFavDesc:'Brz pristup tvojim najvažnijim valutama.',tagTap:'Tap',tagHistory:'Povijest',tagSwitch:'Brza promjena',modExtrasTitle:'🧭 Pomoćnik za putovanje',modExtrasDesc:'Napojnice, vrijeme, bilješke ili usporedba cijena mogu se dodati kasnije.',tagLater:'Uključi kasnije',modIntlTitle:'🌐 Jezik',modIntlDesc:'Sučelje se prebacuje uživo i pamti jezik preglednika.',favoritesTitle:'⭐ Brzi pristup',favoritesHint:'Favoriti dodirom',historyTitle:'🕘 Povijest',historyHint:'Nedavno korišteno',autosave:'Automatsko spremanje',mapTitle:'🗺 Karta i blizu',mapHint:'Vidljivo samo kad je uključeno.',osmNote:'OpenStreetMap / Overpass',poiNote:'Popis prikazuje samo aktivne kategorije.',statusReady:'Spremno',statusText:'Kompaktni način aktivan',localCurrency:'Lokalna valuta:',localCurrencySub:'Nakon GPS dopuštenja pojavit će se prijedlog.'},
-      el:{label:'Ελληνικά',subtitle:'Πολυγλωσσικός ταξιδιωτικός σύντροφος με προαιρετικά modules.',heroPill:'✨ Γρήγορο, καθαρό και χρήσιμο στο ταξίδι · εμφάνιση ή απόκρυψη λειτουργιών',amountLabel:'Ποσό',searchLabel:'Αναζήτηση νομίσματος',fromLabel:'Από',toLabel:'Σε',locationTitle:'Η τοποθεσία δεν είναι ενεργή',locationSubtitle:'Επίτρεψε GPS για να δεις κοντινά μέρη.',geoBtn:'📍 Λήψη τοποθεσίας',nearBtn:'🔎 Σε κοντινή απόσταση',kpiResultLabel:'🧮 Αποτέλεσμα',kpiRateLabel:'📈 Ισοτιμία',kpiFavLabel:'⭐ Αγαπημένα',copyBtn:'Αντιγραφή ισοτιμίας',favBtn:'Αποθήκευση στα αγαπημένα',optionsTitle:'⚙️ Επιλογές',optionsHint:'Εσύ αποφασίζεις τι είναι ορατό.',allOptional:'Όλα είναι προαιρετικά',modMapTitle:'🗺 Χάρτης & κοντά',modMapDesc:'GPS, χάρτης και κοντινά μέρη: ΑΤΜ, εστιατόρια, μπαρ, καφέ.',tagMap:'Χάρτης',tagPlaces:'Μέρη',modFavTitle:'⭐ Αγαπημένα & ιστορικό',modFavDesc:'Γρήγορη πρόσβαση στα πιο σημαντικά νομίσματά σου.',tagTap:'Tap',tagHistory:'Ιστορικό',tagSwitch:'Γρήγορη αλλαγή',modExtrasTitle:'🧭 Βοηθός ταξιδιού',modExtrasDesc:'Φιλοδώρημα, καιρός, σημειώσεις ή σύγκριση τιμών μπορούν να προστεθούν αργότερα.',tagLater:'Ενεργοποίηση αργότερα',modIntlTitle:'🌐 Γλώσσα',modIntlDesc:'Το περιβάλλον αλλάζει ζωντανά και θυμάται τη γλώσσα του browser.',favoritesTitle:'⭐ Γρήγορη πρόσβαση',favoritesHint:'Αγαπημένα με tap',historyTitle:'🕘 Ιστορικό',historyHint:'Πρόσφατα χρησιμοποιημένα',autosave:'Αυτόματη αποθήκευση',mapTitle:'🗺 Χάρτης & κοντά',mapHint:'Ορατό μόνο όταν είναι ενεργό.',osmNote:'OpenStreetMap / Overpass',poiNote:'Η λίστα ακολουθεί μόνο τις ενεργές κατηγορίες.',statusReady:'Έτοιμο',statusText:'Ενεργή συμπαγής λειτουργία',localCurrency:'Τοπικό νόμισμα:',localCurrencySub:'Μετά την άδεια GPS εμφανίζεται πρόταση.'},
-      bg:{label:'Български',subtitle:'Многоезичен пътешественик с опционални модули.',heroPill:'✨ Бързо, ясно и удобно за пътуване · показване или скриване на функции',amountLabel:'Сума',searchLabel:'Търсене на валута',fromLabel:'От',toLabel:'До',locationTitle:'Местоположението е неактивно',locationSubtitle:'Позволи GPS, за да видиш места наблизо.',geoBtn:'📍 Вземи местоположение',nearBtn:'🔎 Наблизо',kpiResultLabel:'🧮 Резултат',kpiRateLabel:'📈 Курс',kpiFavLabel:'⭐ Любими',copyBtn:'Копирай курс',favBtn:'Запази като любимо',optionsTitle:'⚙️ Опции',optionsHint:'Ти решаваш какво да се вижда.',allOptional:'Всичко е по избор',modMapTitle:'🗺 Карта и наблизо',modMapDesc:'GPS, карта и места наблизо: банкомати, ресторанти, барове, кафенета.',tagMap:'Карта',tagPlaces:'Места',modFavTitle:'⭐ Любими и история',modFavDesc:'Бърз достъп до най-важните валути.',tagTap:'Tap',tagHistory:'История',tagSwitch:'Бърза смяна',modExtrasTitle:'🧭 Помощник за пътуване',modExtrasDesc:'Бакшиш, време, бележки или сравнение на цени могат да се добавят по-късно.',tagLater:'Активирай по-късно',modIntlTitle:'🌐 Език',modIntlDesc:'Интерфейсът се сменя на живо и помни езика на браузъра.',favoritesTitle:'⭐ Бърз достъп',favoritesHint:'Любими с тап',historyTitle:'🕘 История',historyHint:'Наскоро използвани',autosave:'Автоматично запазване',mapTitle:'🗺 Карта и наблизо',mapHint:'Видимо само когато е активирано.',osmNote:'OpenStreetMap / Overpass',poiNote:'Списъкът показва само активните категории.',statusReady:'Готово',statusText:'Активен компактен режим',localCurrency:'Местна валута:',localCurrencySub:'След GPS разрешение се появява предложение.'},
-      tr:{label:'Türkçe',subtitle:'İsteğe bağlı modüllerle sezgisel bir para ve seyahat asistanı.',heroPill:'✨ Hızlı, net ve seyahate uygun · özellikleri göster veya gizle',amountLabel:'Tutar',searchLabel:'Para birimi ara',fromLabel:'Kaynak',toLabel:'Hedef',locationTitle:'Konum etkin değil',locationSubtitle:'Yakındaki yerleri göstermek için GPS’e izin ver.',geoBtn:'📍 Konumu al',nearBtn:'🔎 Yakında',kpiResultLabel:'🧮 Sonuç',kpiRateLabel:'📈 Kur',kpiFavLabel:'⭐ Favoriler',copyBtn:'Kuru kopyala',favBtn:'Favori olarak kaydet',optionsTitle:'⚙️ Seçenekler',optionsHint:'Neyin görünür olduğuna sen karar ver.',allOptional:'Her şey isteğe bağlı',modMapTitle:'🗺 Harita ve yakın',modMapDesc:'GPS, harita ve yakın yerler: ATM’ler, restoranlar, barlar, kafeler.',tagMap:'Harita',tagPlaces:'Yerler',modFavTitle:'⭐ Favoriler ve geçmiş',modFavDesc:'En önemli para birimlerine hızlı erişim.',tagTap:'Dokun',tagHistory:'Geçmiş',tagSwitch:'Hızlı geçiş',modExtrasTitle:'🧭 Seyahat yardımcısı',modExtrasDesc:'Bahşiş, hava durumu, notlar veya fiyat karşılaştırması daha sonra eklenebilir.',tagLater:'Sonra etkinleştir',modIntlTitle:'🌐 Dil',modIntlDesc:'Arayüz canlı değişir ve tarayıcı dilini hatırlar.',favoritesTitle:'⭐ Hızlı erişim',favoritesHint:'Dokunarak favoriler',historyTitle:'🕘 Geçmiş',historyHint:'Son kullanılanlar',autosave:'Otomatik kaydet',mapTitle:'🗺 Harita ve yakın',mapHint:'Sadece etkinleştirildiğinde görünür.',osmNote:'OpenStreetMap / Overpass',poiNote:'Liste yalnızca etkin kategorileri gösterir.',statusReady:'Hazır',statusText:'Kompakt mod etkin',localCurrency:'Yerel para birimi:',localCurrencySub:'GPS izninden sonra öneri görünür.'},
-      zhHans:{label:'中文（简体）',subtitle:'直观的货币和旅行助手，带可选模块。',heroPill:'✨ 快速、清晰、适合旅行 · 可显示或隐藏功能',amountLabel:'金额',searchLabel:'搜索货币',fromLabel:'从',toLabel:'到',locationTitle:'定位未启用',locationSubtitle:'允许 GPS 后可显示附近地点。',geoBtn:'📍 获取位置',nearBtn:'🔎 附近',kpiResultLabel:'🧮 结果',kpiRateLabel:'📈 汇率',kpiFavLabel:'⭐ 收藏',copyBtn:'复制汇率',favBtn:'加入收藏',optionsTitle:'⚙️ 选项',optionsHint:'由你决定显示什么。',allOptional:'全部可选',modMapTitle:'🗺 地图与附近',modMapDesc:'GPS、地图和附近地点：ATM、餐馆、酒吧、咖啡馆。',tagMap:'地图',tagPlaces:'地点',modFavTitle:'⭐ 收藏与历史',modFavDesc:'快速访问最重要的货币。',tagTap:'点击',tagHistory:'历史',tagSwitch:'快速切换',modExtrasTitle:'🧭 旅行助手',modExtrasDesc:'小费、天气、笔记或价格比较以后可添加。',tagLater:'稍后启用',modIntlTitle:'🌐 语言',modIntlDesc:'界面会实时切换并记住浏览器语言。',favoritesTitle:'⭐ 快捷入口',favoritesHint:'轻点收藏',historyTitle:'🕘 历史',historyHint:'最近使用',autosave:'自动保存',mapTitle:'🗺 地图与附近',mapHint:'仅在启用时可见。',osmNote:'OpenStreetMap / Overpass',poiNote:'列表仅显示已启用类别。',statusReady:'就绪',statusText:'紧凑模式已启用',localCurrency:'本地货币：',localCurrencySub:'允许 GPS 后会显示建议。'}
+      de:{label:'Deutsch',subtitle:'Intuitiver Währungs- und Travel-Companion mit optionalen Modulen.',heroPill:'✨ Schnell, klar, auf Reisen nutzbar · Features ein-/ausblendbar',fromLabel:'Von',toLabel:'Nach',rateLine:'1 {from} = {rate} {to}',resultLabel:'{code} · {name}',copyBtn:'Kurs kopieren',favBtn:'Als Favorit',favoritesTitle:'⭐ Schnellzugriff',favoritesHint:'Favoriten per Tap',historyTitle:'🕘 Verlauf',historyHint:'Zuletzt genutzt',autosave:'Auto-Speicher',optionsTitle:'⚙️ Optionen',optionsHint:'Was sichtbar ist, entscheidest du selbst.',allOptional:'Alles ist optional',modMapTitle:'🗺 Karte & Nearby',modMapDesc:'GPS, Karte und Orte in der Nähe: Geldautomaten, Restaurants, Bars, Cafés.',tagMap:'Karte',tagPlaces:'Orte',modFavTitle:'⭐ Favoriten & Verlauf',modFavDesc:'Schneller Zugriff auf deine wichtigsten Währungen.',tagTap:'Tap',tagHistory:'Verlauf',tagSwitch:'Quick Switch',modExtrasTitle:'🧭 Reise-Helfer',modExtrasDesc:'Trinkgeld, Wetter, Notizen oder Preisvergleich könnten hier später dazukommen.',tagLater:'Später aktivierbar',modIntlTitle:'🌐 Sprache',modIntlDesc:'Die Oberfläche wechselt live und speichert die Browser-Sprache.',mapTitle:'🗺 Karte & Nearby',mapHint:'Nur sichtbar, wenn du es aktiviert hast.',localCurrency:'Lokale Währung:',localCurrencySub:'Nach GPS-Freigabe wird ein Vorschlag angezeigt.',locationTitle:'Standort nicht aktiv',locationSubtitle:'Optional GPS freigeben, um lokale Orte anzuzeigen.',geoBtn:'📍 Standort holen',nearBtn:'🔎 Nearby',statusReady:'Bereit',statusText:'Kompaktmodus aktiv',gpsRequired:'GPS benötigt HTTPS oder localhost.',gpsBlocked:'GPS-Freigabe nicht erteilt.',searching:'Suche läuft ...',noResults:'Keine Treffer',noData:'Keine Daten geladen',found:'Orte gefunden',visible:'Orte sichtbar'},
+      en:{label:'English',subtitle:'An intuitive currency and travel companion with optional modules.',heroPill:'✨ Fast, clear, travel-friendly · show or hide features',fromLabel:'From',toLabel:'To',rateLine:'1 {from} = {rate} {to}',resultLabel:'{code} · {name}',copyBtn:'Copy rate',favBtn:'Save as favorite',favoritesTitle:'⭐ Quick access',favoritesHint:'Favorites by tap',historyTitle:'🕘 History',historyHint:'Recently used',autosave:'Auto-save',optionsTitle:'⚙️ Options',optionsHint:'You decide what is visible.',allOptional:'Everything is optional',modMapTitle:'🗺 Map & Nearby',modMapDesc:'GPS, map and nearby places: ATMs, restaurants, bars, cafes.',tagMap:'Map',tagPlaces:'Places',modFavTitle:'⭐ Favorites & history',modFavDesc:'Quick access to your most important currencies.',tagTap:'Tap',tagHistory:'History',tagSwitch:'Quick Switch',modExtrasTitle:'🧭 Travel helper',modExtrasDesc:'Tip, weather, notes or price comparison can be added later.',tagLater:'Enable later',modIntlTitle:'🌐 Language',modIntlDesc:'The interface switches live and remembers the browser language.',mapTitle:'🗺 Map & Nearby',mapHint:'Visible only when enabled.',localCurrency:'Local currency:',localCurrencySub:'A suggestion appears after GPS permission.',locationTitle:'Location inactive',locationSubtitle:'Optionally allow GPS to show nearby places.',geoBtn:'📍 Get location',nearBtn:'🔎 Nearby',statusReady:'Ready',statusText:'Compact mode active',gpsRequired:'GPS requires HTTPS or localhost.',gpsBlocked:'GPS permission denied.',searching:'Searching ...',noResults:'No results',noData:'No data loaded',found:'places found',visible:'places visible'},
+      es:{label:'Español',subtitle:'Un compañero intuitivo de divisas y viajes con módulos opcionales.',heroPill:'✨ Rápido, claro y útil para viajar · mostrar u ocultar funciones',fromLabel:'De',toLabel:'A',rateLine:'1 {from} = {rate} {to}',resultLabel:'{code} · {name}',copyBtn:'Copiar tipo',favBtn:'Guardar favorito',favoritesTitle:'⭐ Acceso rápido',favoritesHint:'Favoritos al toque',historyTitle:'🕘 Historial',historyHint:'Usado recientemente',autosave:'Auto-guardado',optionsTitle:'⚙️ Opciones',optionsHint:'Tú decides qué se ve.',allOptional:'Todo es opcional',modMapTitle:'🗺 Mapa y cerca',modMapDesc:'GPS, mapa y lugares cercanos: cajeros, restaurantes, bares, cafés.',tagMap:'Mapa',tagPlaces:'Lugares',modFavTitle:'⭐ Favoritos e historial',modFavDesc:'Acceso rápido a tus monedas más importantes.',tagTap:'Toque',tagHistory:'Historial',tagSwitch:'Cambio rápido',modExtrasTitle:'🧭 Ayuda de viaje',modExtrasDesc:'Propinas, clima, notas o comparación de precios se pueden añadir después.',tagLater:'Activar después',modIntlTitle:'🌐 Idioma',modIntlDesc:'La interfaz cambia en vivo y guarda el idioma del navegador.',mapTitle:'🗺 Mapa y cerca',mapHint:'Visible solo si está activado.',localCurrency:'Moneda local:',localCurrencySub:'La sugerencia aparece tras permitir GPS.',locationTitle:'Ubicación inactiva',locationSubtitle:'Permite GPS para mostrar lugares cercanos.',geoBtn:'📍 Obtener ubicación',nearBtn:'🔎 Cerca',statusReady:'Listo',statusText:'Modo compacto activo',gpsRequired:'GPS requiere HTTPS o localhost.',gpsBlocked:'Permiso GPS denegado.',searching:'Buscando ...',noResults:'Sin resultados',noData:'Sin datos',found:'lugares encontrados',visible:'lugares visibles'},
+      pt:{label:'Português',subtitle:'Um companheiro intuitivo de moeda e viagem com módulos opcionais.',heroPill:'✨ Rápido, claro e útil para viajar · mostrar ou ocultar funções',fromLabel:'De',toLabel:'Para',rateLine:'1 {from} = {rate} {to}',resultLabel:'{code} · {name}',copyBtn:'Copiar taxa',favBtn:'Guardar favorito',favoritesTitle:'⭐ Acesso rápido',favoritesHint:'Favoritos por toque',historyTitle:'🕘 Histórico',historyHint:'Usado recentemente',autosave:'Auto-salvar',optionsTitle:'⚙️ Opções',optionsHint:'Você decide o que fica visível.',allOptional:'Tudo é opcional',modMapTitle:'🗺 Mapa e perto',modMapDesc:'GPS, mapa e locais próximos: caixas, restaurantes, bares, cafés.',tagMap:'Mapa',tagPlaces:'Locais',modFavTitle:'⭐ Favoritos e histórico',modFavDesc:'Acesso rápido às suas moedas principais.',tagTap:'Toque',tagHistory:'Histórico',tagSwitch:'Troca rápida',modExtrasTitle:'🧭 Ajuda de viagem',modExtrasDesc:'Gorjeta, clima, notas ou comparação de preços podem ser adicionados depois.',tagLater:'Ativar depois',modIntlTitle:'🌐 Idioma',modIntlDesc:'A interface muda ao vivo e memoriza o idioma do navegador.',mapTitle:'🗺 Mapa e perto',mapHint:'Visível apenas quando ativado.',localCurrency:'Moeda local:',localCurrencySub:'A sugestão aparece após permitir o GPS.',locationTitle:'Localização inativa',locationSubtitle:'Permita GPS para ver locais próximos.',geoBtn:'📍 Obter localização',nearBtn:'🔎 Próximo',statusReady:'Pronto',statusText:'Modo compacto ativo',gpsRequired:'O GPS requer HTTPS ou localhost.',gpsBlocked:'Permissão de GPS negada.',searching:'Procurando ...',noResults:'Sem resultados',noData:'Sem dados carregados',found:'locais encontrados',visible:'locais visíveis'},
+      fr:{label:'Français',subtitle:'Un compagnon intuitif pour les devises et les voyages avec modules optionnels.',heroPill:'✨ Rapide, clair et utile en voyage · afficher ou masquer les fonctions',fromLabel:'De',toLabel:'À',rateLine:'1 {from} = {rate} {to}',resultLabel:'{code} · {name}',copyBtn:'Copier le taux',favBtn:'Ajouter aux favoris',favoritesTitle:'⭐ Accès rapide',favoritesHint:'Favoris par tap',historyTitle:'🕘 Historique',historyHint:'Utilisé récemment',autosave:'Auto-sauvegarde',optionsTitle:'⚙️ Options',optionsHint:'Vous décidez ce qui est visible.',allOptional:'Tout est optionnel',modMapTitle:'🗺 Carte et proximité',modMapDesc:'GPS, carte et lieux proches : distributeurs, restaurants, bars, cafés.',tagMap:'Carte',tagPlaces:'Lieux',modFavTitle:'⭐ Favoris et historique',modFavDesc:'Accès rapide à vos devises principales.',tagTap:'Tap',tagHistory:'Historique',tagSwitch:'Changement rapide',modExtrasTitle:'🧭 Aide voyage',modExtrasDesc:'Pourboires, météo, notes ou comparaison de prix peuvent être ajoutés plus tard.',tagLater:'Activer plus tard',modIntlTitle:'🌐 Langue',modIntlDesc:'L’interface change en direct et mémorise la langue du navigateur.',mapTitle:'🗺 Carte et proximité',mapHint:'Visible uniquement si activé.',localCurrency:'Devise locale :',localCurrencySub:'La suggestion apparaît après autorisation GPS.',locationTitle:'Localisation inactive',locationSubtitle:'Autorisez le GPS pour afficher les lieux à proximité.',geoBtn:'📍 Obtenir la position',nearBtn:'🔎 À proximité',statusReady:'Prêt',statusText:'Mode compact actif',gpsRequired:'Le GPS nécessite HTTPS ou localhost.',gpsBlocked:'Autorisation GPS refusée.',searching:'Recherche en cours ...',noResults:'Aucun résultat',noData:'Aucune donnée chargée',found:'lieux trouvés',visible:'lieux visibles'},
+      it:{label:'Italiano',subtitle:'Un compagno intuitivo per valute e viaggi con moduli opzionali.',heroPill:'✨ Veloce, chiaro e utile in viaggio · mostra o nascondi funzioni',fromLabel:'Da',toLabel:'A',rateLine:'1 {from} = {rate} {to}',resultLabel:'{code} · {name}',copyBtn:'Copia tasso',favBtn:'Salva preferito',favoritesTitle:'⭐ Accesso rapido',favoritesHint:'Preferiti con un tap',historyTitle:'🕘 Cronologia',historyHint:'Usato di recente',autosave:'Salvataggio automatico',optionsTitle:'⚙️ Opzioni',optionsHint:'Decidi tu cosa è visibile.',allOptional:'Tutto è opzionale',modMapTitle:'🗺 Mappa e vicini',modMapDesc:'GPS, mappa e luoghi vicini: bancomat, ristoranti, bar, caffè.',tagMap:'Mappa',tagPlaces:'Luoghi',modFavTitle:'⭐ Preferiti e cronologia',modFavDesc:'Accesso rapido alle tue valute più importanti.',tagTap:'Tap',tagHistory:'Cronologia',tagSwitch:'Cambio rapido',modExtrasTitle:'🧭 Aiuto viaggio',modExtrasDesc:'Mancia, meteo, note o confronto prezzi possono essere aggiunti dopo.',tagLater:'Attiva dopo',modIntlTitle:'🌐 Lingua',modIntlDesc:'L’interfaccia cambia in tempo reale e memorizza la lingua del browser.',mapTitle:'🗺 Mappa e vicini',mapHint:'Visibile solo se attivato.',localCurrency:'Valuta locale:',localCurrencySub:'Il suggerimento appare dopo il permesso GPS.',locationTitle:'Posizione inattiva',locationSubtitle:'Consenti il GPS per mostrare i luoghi vicini.',geoBtn:'📍 Ottieni posizione',nearBtn:'🔎 Vicino',statusReady:'Pronto',statusText:'Modalità compatta attiva',gpsRequired:'Il GPS richiede HTTPS o localhost.',gpsBlocked:'Permesso GPS negato.',searching:'Ricerca in corso ...',noResults:'Nessun risultato',noData:'Nessun dato caricato',found:'luoghi trovati',visible:'luoghi visibili'},
+      zhHans:{label:'中文（简体）',subtitle:'直观的货币和旅行助手，带可选模块。',heroPill:'✨ 快速、清晰、适合旅行 · 可显示或隐藏功能',fromLabel:'从',toLabel:'到',rateLine:'1 {from} = {rate} {to}',resultLabel:'{code} · {name}',copyBtn:'复制汇率',favBtn:'加入收藏',favoritesTitle:'⭐ 快捷入口',favoritesHint:'轻点收藏',historyTitle:'🕘 历史',historyHint:'最近使用',autosave:'自动保存',optionsTitle:'⚙️ 选项',optionsHint:'由你决定显示什么。',allOptional:'全部可选',modMapTitle:'🗺 地图与附近',modMapDesc:'GPS、地图和附近地点：ATM、餐馆、酒吧、咖啡馆。',tagMap:'地图',tagPlaces:'地点',modFavTitle:'⭐ 收藏与历史',modFavDesc:'快速访问最重要的货币。',tagTap:'点击',tagHistory:'历史',tagSwitch:'快速切换',modExtrasTitle:'🧭 旅行助手',modExtrasDesc:'小费、天气、笔记或价格比较以后可添加。',tagLater:'稍后启用',modIntlTitle:'🌐 语言',modIntlDesc:'界面会实时切换并记住浏览器语言。',mapTitle:'🗺 地图与附近',mapHint:'仅在启用时可见。',localCurrency:'本地货币：',localCurrencySub:'允许 GPS 后会显示建议。',locationTitle:'定位未启用',locationSubtitle:'允许 GPS 后可显示附近地点。',geoBtn:'📍 获取位置',nearBtn:'🔎 附近',statusReady:'就绪',statusText:'紧凑模式已启用',gpsRequired:'GPS 需要 HTTPS 或 localhost。',gpsBlocked:'GPS 权限被拒绝。',searching:'搜索中 ...',noResults:'无结果',noData:'无数据',found:'个地点找到',visible:'个地点可见'}
     };
 
-    const CURRENCIES=[
-      { code:'EUR', name:'Euro', flag:'🇪🇺', rateToEUR:1 }, { code:'USD', name:'US-Dollar', flag:'🇺🇸', rateToEUR:0.92 },
-      { code:'GBP', name:'Britisches Pfund', flag:'🇬🇧', rateToEUR:1.17 }, { code:'PLN', name:'Polnischer Zloty', flag:'🇵🇱', rateToEUR:0.23 },
-      { code:'CHF', name:'Schweizer Franken', flag:'🇨🇭', rateToEUR:1.04 }, { code:'JPY', name:'Japanischer Yen', flag:'🇯🇵', rateToEUR:0.0061 },
-      { code:'SEK', name:'Schwedische Krone', flag:'🇸🇪', rateToEUR:0.088 }, { code:'NOK', name:'Norwegische Krone', flag:'🇳🇴', rateToEUR:0.086 },
-      { code:'CAD', name:'Kanadischer Dollar', flag:'🇨🇦', rateToEUR:0.68 }, { code:'AUD', name:'Australischer Dollar', flag:'🇦🇺', rateToEUR:0.61 },
-      { code:'CZK', name:'Tschechische Krone', flag:'🇨🇿', rateToEUR:0.041 }, { code:'HUF', name:'Ungarischer Forint', flag:'🇭🇺', rateToEUR:0.0026 }
+    const CURRENCIES = [
+      { code:'PLN', name:'Polnischer Zloty', flag:'🇵🇱', rateToEUR:0.23 },
+      { code:'EUR', name:'Euro', flag:'🇪🇺', rateToEUR:1 },
+      { code:'USD', name:'US-Dollar', flag:'🇺🇸', rateToEUR:0.92 },
+      { code:'GBP', name:'Britisches Pfund', flag:'🇬🇧', rateToEUR:1.17 },
+      { code:'CHF', name:'Schweizer Franken', flag:'🇨🇭', rateToEUR:1.04 },
+      { code:'JPY', name:'Japanischer Yen', flag:'🇯🇵', rateToEUR:0.0061 },
+      { code:'SEK', name:'Schwedische Krone', flag:'🇸🇪', rateToEUR:0.088 },
+      { code:'NOK', name:'Norwegische Krone', flag:'🇳🇴', rateToEUR:0.086 },
+      { code:'CAD', name:'Kanadischer Dollar', flag:'🇨🇦', rateToEUR:0.68 },
+      { code:'AUD', name:'Australischer Dollar', flag:'🇦🇺', rateToEUR:0.61 },
+      { code:'CZK', name:'Tschechische Krone', flag:'🇨🇿', rateToEUR:0.041 },
+      { code:'HUF', name:'Ungarischer Forint', flag:'🇭🇺', rateToEUR:0.0026 }
     ];
-    const FAVORITES_DEFAULT=['USD','GBP','CHF','PLN']; const HISTORY=['EUR','USD','GBP','CHF','PLN'];
-    const POI={
-      atm:{tag:'amenity',value:'atm',label:'ATM',icon:'🏧',color:'var(--poi-atm)'}, food:{tag:'amenity',value:'restaurant',label:'Restaurant',icon:'🍽',color:'var(--poi-food)'},
-      drink:{tag:'amenity',value:'bar',label:'Bar',icon:'🍸',color:'var(--poi-drink)'}, cafe:{tag:'amenity',value:'cafe',label:'Café',icon:'☕',color:'var(--poi-cafe)'}, hotel:{tag:'tourism',value:'hotel',label:'Hotel',icon:'🛏',color:'var(--poi-hotel)'}
+    const FAVORITES_DEFAULT = ['USD','GBP','CHF','PLN'];
+    const HISTORY = ['EUR','USD','GBP','CHF','PLN'];
+    const POI = {
+      atm:{tag:'amenity',value:'atm',label:'ATM',icon:'🏧',color:'var(--poi-atm)'},
+      food:{tag:'amenity',value:'restaurant',label:'Restaurant',icon:'🍽',color:'var(--poi-food)'},
+      drink:{tag:'amenity',value:'bar',label:'Bar',icon:'🍸',color:'var(--poi-drink)'},
+      cafe:{tag:'amenity',value:'cafe',label:'Café',icon:'☕',color:'var(--poi-cafe)'},
+      hotel:{tag:'tourism',value:'hotel',label:'Hotel',icon:'🛏',color:'var(--poi-hotel)'}
     };
-    const LOCALES = ['de','en','es','pt','fr','it','nl','pl','sv','no','da','fi','cs','hu','ro','sk','sl','hr','el','bg','tr','zhHans'];
+    const LANG_ORDER = ['de','en','es','pt','fr','it','zhHans'];
 
-    const $=id=>document.getElementById(id);
-    const amountEl=$('amount'), searchEl=$('search'), fromEl=$('from'), toEl=$('to');
-    const resultValueEl=$('resultValue'), resultLabelEl=$('resultLabel'), rateLineEl=$('rateLine');
-    const kpiResultEl=$('kpiResult'), kpiRateEl=$('kpiRate'), kpiFavEl=$('kpiFav');
-    const favoritesEl=$('favorites'), historyEl=$('history'), currencyStrip=$('currencyStrip');
-    const copyBtn=$('copyBtn'), favBtn=$('favBtn'), swapBtn=$('swapBtn');
-    const modeBtn=$('modeBtn'), modeIcon=$('modeIcon'), modeText=$('modeText');
-    const langSelect=$('langSelect');
-    const mapSection=$('mapSection'), modMap=$('modMap'), modFav=$('modFav'), modExtras=$('modExtras'), modIntl=$('modIntl');
-    const locationTitle=$('locationTitle'), locationSubtitle=$('locationSubtitle'), nearbyStatus=$('nearbyStatus');
-    const localCurrencyHint=$('localCurrencyHint'), localCurrencySub=$('localCurrencySub');
-    const poiList=$('poiList'), poiButtons=Array.from(document.querySelectorAll('.poi-chip'));
+    const $ = id => document.getElementById(id);
+    const amountEl = $('amount'), fromEl = $('from'), toEl = $('to'), langSelect = $('langSelect');
+    const resultValueEl = $('resultValue'), resultLabelEl = $('resultLabel'), rateLineEl = $('rateLine');
+    const copyBtn = $('copyBtn'), favBtn = $('favBtn'), swapBtn = $('swapBtn');
+    const favoritesEl = $('favorites'), historyEl = $('history');
+    const modeBtn = $('modeBtn'), modeIcon = $('modeIcon'), modeText = $('modeText');
+    const mapSection = $('mapSection'), modMap = $('modMap'), modFav = $('modFav'), modExtras = $('modExtras');
+    const locationTitle = $('locationTitle'), locationSubtitle = $('locationSubtitle'), nearbyStatus = $('nearbyStatus');
+    const localCurrencyHint = $('localCurrencyHint'), localCurrencySub = $('localCurrencySub');
+    const poiList = $('poiList'), poiButtons = Array.from(document.querySelectorAll('.poi-chip'));
 
-    let lang=localStorage.getItem('fx-lang') || (navigator.language || 'de').slice(0,2); if (!LOCALES.includes(lang)) lang='de';
-    let theme=localStorage.getItem('fx-theme') || 'light';
-    let favorites=JSON.parse(localStorage.getItem('fx-favorites') || 'null') || FAVORITES_DEFAULT;
-    let currentPosition=null, poiResults=[], activeKinds=new Set(['atm','food','drink']);
-    let map=null, userMarker=null, poiLayer=null;
+    let lang = localStorage.getItem('fx-lang') || (navigator.language || 'de').slice(0,2);
+    if (!LANG_ORDER.includes(lang)) lang = 'de';
+    let theme = localStorage.getItem('fx-theme') || 'light';
+    let favorites = JSON.parse(localStorage.getItem('fx-favorites') || 'null') || FAVORITES_DEFAULT;
+    let currentPosition = null, poiResults = [], activeKinds = new Set(['atm','food','drink']);
+    let map = null, userMarker = null, poiLayer = null;
 
-    function t(key){ return (LANGS[lang] && LANGS[lang][key]) || LANGS.de[key] || key; }
-    function fmt(n, d=2){ return new Intl.NumberFormat(lang === 'zhHans' ? 'zh-CN' : lang, { maximumFractionDigits:d, minimumFractionDigits:n<1 ? Math.min(4,d) : Math.min(2,d) }).format(n); }
-    function compact(n){ return new Intl.NumberFormat(lang === 'zhHans' ? 'zh-CN' : lang, { notation:'compact', maximumFractionDigits:2 }).format(n); }
-    function getCurrency(code){ return CURRENCIES.find(c=>c.code===code) || CURRENCIES[0]; }
-    function rateOf(from,to){ const a=getCurrency(from), b=getCurrency(to); return a.rateToEUR / b.rateToEUR; }
-    function esc(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function currentLang(){ return LANGS[lang] ? lang : 'de'; }
+    function t(key){ return (LANGS[currentLang()] && LANGS[currentLang()][key]) || LANGS.de[key] || key; }
+    function fmt(n, d = 2){ return new Intl.NumberFormat(currentLang() === 'zhHans' ? 'zh-CN' : currentLang(), { maximumFractionDigits:d, minimumFractionDigits:n < 1 ? Math.min(4,d) : Math.min(2,d) }).format(n); }
+    function compact(n){ return new Intl.NumberFormat(currentLang() === 'zhHans' ? 'zh-CN' : currentLang(), { notation:'compact', maximumFractionDigits:2 }).format(n); }
+    function getCurrency(code){ return CURRENCIES.find(c => c.code === code) || CURRENCIES[0]; }
+    function rateOf(from, to){ const a = getCurrency(from), b = getCurrency(to); return a.rateToEUR / b.rateToEUR; }
+    function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function setTheme(next){ theme = next; document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light'); localStorage.setItem('fx-theme', theme); modeIcon.textContent = theme === 'dark' ? '☀️' : '🌙'; modeText.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode'; if (map) setTimeout(() => map.invalidateSize(), 120); }
 
-    function setTheme(next){
-      theme=next; document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light'); localStorage.setItem('fx-theme', theme);
-      modeIcon.textContent = theme === 'dark' ? '☀️' : '🌙'; modeText.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
-      if (map) setTimeout(() => map.invalidateSize(), 120);
-    }
-
-    function buildLanguageOptions(){
-      langSelect.innerHTML = LOCALES.map(code => `<option value="${code}">${LANGS[code].label}</option>`).join('');
-      langSelect.value = lang;
-    }
+    function buildLanguageOptions(){ langSelect.innerHTML = LANG_ORDER.map(code => `<option value="${code}">${LANGS[code].label}</option>`).join(''); langSelect.value = currentLang(); }
 
     function applyLanguage(){
-      document.documentElement.lang = lang === 'zhHans' ? 'zh-Hans' : lang;
+      document.documentElement.lang = currentLang() === 'zhHans' ? 'zh-Hans' : currentLang();
       document.title = `FX Pro · ${t('subtitle')}`;
-      $('subtitle').textContent = t('subtitle');
-      $('heroPill').textContent = t('heroPill');
-      $('amountLabel').textContent = t('amountLabel');
-      $('searchLabel').textContent = t('searchLabel');
-      $('fromLabel').textContent = t('fromLabel');
-      $('toLabel').textContent = t('toLabel');
-      $('locationTitle').textContent = t('locationTitle');
-      $('locationSubtitle').textContent = t('locationSubtitle');
-      $('geoBtn').textContent = t('geoBtn');
-      $('nearBtn').textContent = t('nearBtn');
-      $('kpiResultLabel').textContent = t('kpiResultLabel');
-      $('kpiRateLabel').textContent = t('kpiRateLabel');
-      $('kpiFavLabel').textContent = t('kpiFavLabel');
-      $('copyBtn').textContent = t('copyBtn');
-      $('favBtn').textContent = t('favBtn');
-      $('optionsTitle').textContent = t('optionsTitle');
-      $('optionsHint').textContent = t('optionsHint');
-      $('allOptional').textContent = t('allOptional');
-      $('modMapTitle').textContent = t('modMapTitle');
-      $('modMapDesc').textContent = t('modMapDesc');
-      $('tagMap').textContent = t('tagMap');
-      $('tagPlaces').textContent = t('tagPlaces');
-      $('modFavTitle').textContent = t('modFavTitle');
-      $('modFavDesc').textContent = t('modFavDesc');
-      $('tagTap').textContent = t('tagTap');
-      $('tagHistory').textContent = t('tagHistory');
-      $('tagSwitch').textContent = t('tagSwitch');
-      $('modExtrasTitle').textContent = t('modExtrasTitle');
-      $('modExtrasDesc').textContent = t('modExtrasDesc');
-      $('tagLater').textContent = t('tagLater');
-      $('modIntlTitle').textContent = t('modIntlTitle');
-      $('modIntlDesc').textContent = t('modIntlDesc');
-      $('favoritesTitle').textContent = t('favoritesTitle');
-      $('favoritesHint').textContent = t('favoritesHint');
-      $('historyTitle').textContent = t('historyTitle');
-      $('historyHint').textContent = t('historyHint');
-      $('autosave').textContent = t('autosave');
-      $('mapTitle').textContent = t('mapTitle');
-      $('mapHint').textContent = t('mapHint');
-      $('osmNote').textContent = t('osmNote');
-      $('poiNote').textContent = t('poiNote');
-      $('statusTitle').textContent = t('statusReady');
-      $('statusText').textContent = t('statusText');
-      $('localCurrencySub').textContent = t('localCurrencySub');
+      $('subtitle').textContent = t('subtitle'); $('heroPill').textContent = t('heroPill'); $('fromLabel').textContent = t('fromLabel'); $('toLabel').textContent = t('toLabel');
+      $('copyBtn').textContent = t('copyBtn'); $('favBtn').textContent = t('favBtn'); $('favoritesTitle').textContent = t('favoritesTitle'); $('favoritesHint').textContent = t('favoritesHint');
+      $('historyTitle').textContent = t('historyTitle'); $('historyHint').textContent = t('historyHint'); $('autosave').textContent = t('autosave'); $('optionsTitle').textContent = t('optionsTitle'); $('optionsHint').textContent = t('optionsHint');
+      $('allOptional').textContent = t('allOptional'); $('modMapTitle').textContent = t('modMapTitle'); $('modMapDesc').textContent = t('modMapDesc'); $('tagMap').textContent = t('tagMap'); $('tagPlaces').textContent = t('tagPlaces');
+      $('modFavTitle').textContent = t('modFavTitle'); $('modFavDesc').textContent = t('modFavDesc'); $('tagTap').textContent = t('tagTap'); $('tagHistory').textContent = t('tagHistory'); $('tagSwitch').textContent = t('tagSwitch');
+      $('modExtrasTitle').textContent = t('modExtrasTitle'); $('modExtrasDesc').textContent = t('modExtrasDesc'); $('tagLater').textContent = t('tagLater'); $('modIntlTitle').textContent = t('modIntlTitle'); $('modIntlDesc').textContent = t('modIntlDesc');
+      $('mapTitle').textContent = t('mapTitle'); $('mapHint').textContent = t('mapHint'); $('locationTitle').textContent = t('locationTitle'); $('locationSubtitle').textContent = t('locationSubtitle'); $('geoBtn').textContent = t('geoBtn'); $('nearBtn').textContent = t('nearBtn');
+      $('statusTitle').textContent = t('statusReady'); $('statusText').textContent = t('statusText'); $('localCurrencySub').textContent = t('localCurrencySub');
       renderAll();
     }
 
-    function filteredCurrencies(){
-      const q=searchEl.value.trim().toLowerCase(); if (!q) return CURRENCIES;
-      return CURRENCIES.filter(c => [c.code, c.name].some(v => v.toLowerCase().includes(q)));
-    }
-
     function populateSelects(){
-      const list = filteredCurrencies();
-      const curFrom = fromEl.value || 'EUR';
-      const curTo = toEl.value || 'USD';
-      fromEl.innerHTML = list.map(c => `<option value="${c.code}">${c.flag} ${c.code} – ${c.name}</option>`).join('');
-      toEl.innerHTML = list.map(c => `<option value="${c.code}">${c.flag} ${c.code} – ${c.name}</option>`).join('');
-      fromEl.value = list.some(c => c.code === curFrom) ? curFrom : list[0].code;
-      toEl.value = list.some(c => c.code === curTo) ? curTo : (list[1] || list[0]).code;
-    }
-
-    function renderCurrencyStrip(){
-      currencyStrip.innerHTML = CURRENCIES.map(c => `<button class="currency-chip ${c.code === toEl.value ? 'active' : ''}" data-code="${c.code}" type="button">${c.flag} ${c.code}</button>`).join('');
-      currencyStrip.querySelectorAll('[data-code]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          toEl.value = btn.getAttribute('data-code');
-          update();
-        });
-      });
+      const curFrom = fromEl.value || 'PLN'; const curTo = toEl.value || 'EUR';
+      fromEl.innerHTML = CURRENCIES.map(c => `<option value="${c.code}">${c.flag} ${c.code} – ${c.name}</option>`).join('');
+      toEl.innerHTML = CURRENCIES.map(c => `<option value="${c.code}">${c.flag} ${c.code} – ${c.name}</option>`).join('');
+      fromEl.value = CURRENCIES.some(c => c.code === curFrom) ? curFrom : 'PLN';
+      toEl.value = CURRENCIES.some(c => c.code === curTo) ? curTo : 'EUR';
     }
 
     function renderFavorites(){
-      if (!modFav.checked){ favoritesEl.innerHTML = `<div class="tiny">${lang === 'zhHans' ? '收藏已停用。' : 'Favoriten deaktiviert.'}</div>`; return; }
+      if (!modFav.checked){ favoritesEl.innerHTML = `<div class="tiny">${currentLang() === 'zhHans' ? '收藏已停用。' : 'Favoriten deaktiviert.'}</div>`; return; }
       favoritesEl.innerHTML = favorites.map(code => {
-        const c = getCurrency(code);
-        const active = fromEl.value === code || toEl.value === code;
+        const c = getCurrency(code); const active = fromEl.value === code || toEl.value === code;
         return `<button class="chip ${active ? 'active' : ''}" data-fav="${code}" type="button">${c.flag} ${c.code}</button>`;
       }).join('');
       favoritesEl.querySelectorAll('[data-fav]').forEach(btn => btn.addEventListener('click', () => {
@@ -322,10 +380,10 @@
     }
 
     function renderHistory(){
-      if (!modFav.checked){ historyEl.innerHTML = `<div class="tiny">${lang === 'zhHans' ? '历史已停用。' : 'Verlauf deaktiviert.'}</div>`; return; }
+      if (!modFav.checked){ historyEl.innerHTML = `<div class="tiny">${currentLang() === 'zhHans' ? '历史已停用。' : 'Verlauf deaktiviert.'}</div>`; return; }
       historyEl.innerHTML = HISTORY.map((code, i) => {
         const c = getCurrency(code);
-        return `<button class="mini-row" data-history="${code}" type="button"><div class="mini-left"><div class="flag">${c.flag}</div><div><strong>${c.code} · ${c.name}</strong><span>${lang === 'zhHans' ? '条目 #' : 'Eintrag #'}${i + 1}</span></div></div><div class="mini-right">${compact(i * 1250 + 7800)} ${lang === 'zhHans' ? '次' : 'Abfragen'}</div></button>`;
+        return `<button class="mini-row" data-history="${code}" type="button"><div class="mini-left"><div class="flag">${c.flag}</div><div><strong>${c.code} · ${c.name}</strong><span>${currentLang() === 'zhHans' ? '条目 #' : 'Eintrag #'}${i + 1}</span></div></div><div class="mini-right">${compact(i * 1250 + 7800)} ${currentLang() === 'zhHans' ? '次' : 'Abfragen'}</div></button>`;
       }).join('');
       historyEl.querySelectorAll('[data-history]').forEach(btn => btn.addEventListener('click', () => { const code = btn.getAttribute('data-history'); if (!code) return; fromEl.value = code; update(); }));
     }
@@ -336,25 +394,16 @@
       const src = getCurrency(from), tgt = getCurrency(to), rate = rateOf(from, to);
       const result = Number.isFinite(amount) ? (amount * src.rateToEUR) / tgt.rateToEUR : 0;
       resultValueEl.textContent = `${fmt(result, 2)} ${to}`;
-      resultLabelEl.textContent = `${to} · ${tgt.name}`;
-      rateLineEl.textContent = `1 ${from} = ${fmt(rate, 4)} ${to}`;
-      kpiResultEl.textContent = `${fmt(result, 2)} ${to}`;
-      kpiRateEl.textContent = fmt(rate, 4);
-      kpiFavEl.textContent = String(favorites.length);
-      favBtn.textContent = favorites.includes(to) ? (lang === 'zhHans' ? '移除收藏' : 'Favorit entfernen') : t('favBtn');
-      renderCurrencyStrip();
-      renderFavorites();
-      renderHistory();
-      if (currentPosition) suggestLocalCurrency();
+      resultLabelEl.textContent = t('resultLabel').replace('{code}', to).replace('{name}', tgt.name);
+      rateLineEl.textContent = t('rateLine').replace('{from}', from).replace('{rate}', fmt(rate, 4)).replace('{to}', to);
+      favBtn.textContent = favorites.includes(to) ? (currentLang() === 'zhHans' ? '移除收藏' : 'Favorit entfernen') : t('favBtn');
+      localCurrencyHint.textContent = `${t('localCurrency')} ${currentPosition ? from : '–'}`;
+      renderFavorites(); renderHistory();
     }
 
     function renderAll(){ populateSelects(); update(); }
-
-    function syncVisibility(){
-      mapSection.classList.toggle('hide', !modMap.checked);
-    }
-
-    function setStatus(text, sub){ $('statusTitle').textContent = text; $('statusText').textContent = sub; }
+    function syncVisibility(){ mapSection.classList.toggle('hide', !modMap.checked); }
+    function setStatus(title, sub){ $('statusTitle').textContent = title; $('statusText').textContent = sub; }
 
     function initMap(lat, lon){
       if (!window.L) return;
@@ -369,34 +418,22 @@
     }
 
     function distanceMeters(lat1, lon1, lat2, lon2){
-      const R=6371000, toRad=d=>d*Math.PI/180;
-      const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
-      const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-      return 2*R*Math.asin(Math.sqrt(a));
+      const R = 6371000, toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+      return 2 * R * Math.asin(Math.sqrt(a));
     }
 
     async function fetchNearby(lat, lon){
-      const selected = Array.from(activeKinds);
-      if (!selected.length) return [];
+      const selected = Array.from(activeKinds); if (!selected.length) return [];
       const around = 3500;
-      const q = selected.map(k => {
-        const p = POI[k];
-        return `node[${p.tag}=${p.value}](around:${around},${lat},${lon});way[${p.tag}=${p.value}](around:${around},${lat},${lon});relation[${p.tag}=${p.value}](around:${around},${lat},${lon});`;
-      }).join('\n');
+      const q = selected.map(k => { const p = POI[k]; return `node[${p.tag}=${p.value}](around:${around},${lat},${lon});way[${p.tag}=${p.value}](around:${around},${lat},${lon});relation[${p.tag}=${p.value}](around:${around},${lat},${lon});`; }).join('\n');
       const query = `[out:json][timeout:25];(${q});out center tags;`;
-      const endpoints = [
-        'https://overpass-api.de/api/interpreter',
-        'https://overpass.kumi.systems/api/interpreter',
-        'https://overpass.openstreetmap.fr/api/interpreter'
-      ];
+      const endpoints = ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.openstreetmap.fr/api/interpreter'];
       let lastError = null;
       for (const endpoint of endpoints){
         try {
-          const response = await fetch(endpoint, {
-            method:'POST',
-            headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-            body:`data=${encodeURIComponent(query)}`
-          });
+          const response = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body:`data=${encodeURIComponent(query)}` });
           if (!response.ok) throw new Error(`Overpass HTTP ${response.status}`);
           const data = await response.json();
           const items = (data.elements || []).map(el => {
@@ -405,8 +442,8 @@
             if (typeof pLat !== 'number' || typeof pLon !== 'number') return null;
             const tags = el.tags || {};
             const kind = selected.find(k => tags[POI[k].tag] === POI[k].value) || 'food';
-            return { id:`${el.type}/${el.id}`, kind, name: tags.name || POI[kind].label, lat:pLat, lon:pLon, distance: distanceMeters(lat,lon,pLat,pLon), tags };
-          }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+            return { kind, name: tags.name || POI[kind].label, lat:pLat, lon:pLon, distance: distanceMeters(lat, lon, pLat, pLon), tags };
+          }).filter(Boolean).sort((a,b) => a.distance - b.distance);
           if (items.length) return items;
         } catch (e) { lastError = e; }
       }
@@ -415,20 +452,12 @@
 
     function renderPois(items){
       if (!poiLayer) return;
-      poiLayer.clearLayers();
-      if (userMarker) poiLayer.addLayer(userMarker);
-      items.forEach(item => {
-        const p = POI[item.kind];
-        const marker = L.circleMarker([item.lat,item.lon], { radius:8, color:p.color, weight:3, fillColor:p.color, fillOpacity:0.24 }).addTo(poiLayer);
-        marker.bindPopup(`<strong>${p.icon} ${esc(item.name)}</strong><br>${p.label} · ${Math.round(item.distance)} m`);
-      });
+      poiLayer.clearLayers(); if (userMarker) poiLayer.addLayer(userMarker);
+      items.forEach(item => { const p = POI[item.kind]; const marker = L.circleMarker([item.lat, item.lon], { radius:8, color:p.color, weight:3, fillColor:p.color, fillOpacity:0.22 }).addTo(poiLayer); marker.bindPopup(`<strong>${p.icon} ${esc(item.name)}</strong><br>${p.label} · ${Math.round(item.distance)} m`); });
     }
 
     function renderPoiList(items){
-      if (!items.length){
-        poiList.innerHTML = `<div class="poi-item"><div class="poi-name">${lang === 'zhHans' ? '没有结果' : 'Keine Treffer'}</div><div class="poi-meta">${lang === 'zhHans' ? '在此范围内未找到匹配地点。' : 'In diesem Umkreis wurden keine passenden Orte gefunden.'}</div></div>`;
-        return;
-      }
+      if (!items.length){ poiList.innerHTML = `<div class="poi-item"><div class="poi-name">${t('noResults')}</div><div class="poi-meta">${currentLang() === 'zhHans' ? '在此范围内未找到匹配地点。' : 'In diesem Umkreis wurden keine passenden Orte gefunden.'}</div></div>`; return; }
       poiList.innerHTML = items.slice(0,20).map(item => {
         const p = POI[item.kind];
         const openUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lon}`;
@@ -438,141 +467,92 @@
       }).join('');
     }
 
-    function suggestLocalCurrency(){
-      localCurrencyHint.textContent = `${t('localCurrency')} EUR · Euro`;
-      localCurrencySub.textContent = t('localCurrencySub');
-    }
-
     async function handleGeo(){
-      if (!navigator.geolocation){
-        setStatus(lang === 'zhHans' ? '不可用' : 'GPS nicht verfügbar', lang === 'zhHans' ? '浏览器不支持定位。' : 'Dein Browser unterstützt Geolocation nicht.');
-        return;
-      }
-      if (!window.isSecureContext){
-        setStatus(lang === 'zhHans' ? '需要 HTTPS' : 'HTTPS nötig', lang === 'zhHans' ? '定位需要 HTTPS 或 localhost。' : 'GPS funktioniert nur über HTTPS oder localhost.');
-        nearbyStatus.textContent = lang === 'zhHans' ? '需要安全连接' : 'Sichere Verbindung nötig';
-        return;
-      }
-      setStatus(lang === 'zhHans' ? '正在获取位置...' : 'Standort wird geladen ...', lang === 'zhHans' ? '请确认 GPS 权限。' : 'Bitte GPS-Freigabe bestätigen.');
+      if (!navigator.geolocation){ setStatus(currentLang() === 'zhHans' ? '不可用' : 'GPS nicht verfügbar', currentLang() === 'zhHans' ? '浏览器不支持定位。' : 'Dein Browser unterstützt Geolocation nicht.'); return; }
+      if (!window.isSecureContext){ setStatus(currentLang() === 'zhHans' ? '需要 HTTPS' : 'HTTPS nötig', t('gpsRequired')); nearbyStatus.textContent = t('gpsRequired'); return; }
+      setStatus(currentLang() === 'zhHans' ? '正在获取位置...' : 'Standort wird geladen ...', currentLang() === 'zhHans' ? '请确认 GPS 权限。' : 'Bitte GPS-Freigabe bestätigen.');
       navigator.geolocation.getCurrentPosition(async pos => {
         currentPosition = { lat:pos.coords.latitude, lon:pos.coords.longitude };
-        setStatus(lang === 'zhHans' ? '位置已启用' : 'Standort aktiv', `${currentPosition.lat.toFixed(4)}, ${currentPosition.lon.toFixed(4)}`);
-        nearbyStatus.textContent = lang === 'zhHans' ? '已加载位置' : 'Standort geladen';
         initMap(currentPosition.lat, currentPosition.lon);
-        suggestLocalCurrency();
+        localCurrencyHint.textContent = `${t('localCurrency')} ${fromEl.value}`;
+        locationTitle.textContent = currentLang() === 'zhHans' ? '位置已启用' : 'Standort aktiv';
+        locationSubtitle.textContent = currentLang() === 'zhHans' ? '通过浏览器 GPS 自动识别。' : 'Automatisch erkannt über Browser-GPS.';
+        nearbyStatus.textContent = currentLang() === 'zhHans' ? '已加载位置' : 'Standort geladen';
         try {
           const rev = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${currentPosition.lat}&lon=${currentPosition.lon}`);
-          if (rev.ok){
-            const data = await rev.json();
-            const addr = data.address || {};
-            const place = [addr.city || addr.town || addr.village, addr.state, addr.country].filter(Boolean).join(', ');
-            if (place){
-              locationTitle.textContent = place;
-              locationSubtitle.textContent = lang === 'zhHans' ? '通过浏览器 GPS 自动识别。' : 'Automatisch erkannt über Browser-GPS.';
-            }
-          }
+          if (rev.ok){ const data = await rev.json(); const addr = data.address || {}; const place = [addr.city || addr.town || addr.village, addr.state, addr.country].filter(Boolean).join(', '); if (place) locationTitle.textContent = place; }
         } catch(_){}
         await handleNearby();
-      }, err => {
-        setStatus(lang === 'zhHans' ? '定位被拒绝' : 'Standort abgelehnt', err.message || (lang === 'zhHans' ? '未授予 GPS 权限。' : 'GPS-Freigabe nicht erteilt.'));
-        nearbyStatus.textContent = lang === 'zhHans' ? '未共享位置' : 'Standort nicht freigegeben';
-      }, { enableHighAccuracy:true, timeout:12000, maximumAge:60000 });
+      }, err => { setStatus(currentLang() === 'zhHans' ? '定位被拒绝' : 'Standort abgelehnt', err.message || t('gpsBlocked')); nearbyStatus.textContent = t('gpsBlocked'); }, { enableHighAccuracy:true, timeout:12000, maximumAge:60000 });
     }
 
     async function handleNearby(){
       if (!modMap.checked){ modMap.checked = true; syncVisibility(); }
       if (!currentPosition){ await handleGeo(); if (!currentPosition) return; }
-      nearbyStatus.textContent = lang === 'zhHans' ? '搜索中...' : 'Suche läuft ...';
-      poiList.innerHTML = `<div class="poi-item"><div class="poi-name">${lang === 'zhHans' ? '搜索中' : 'Suche läuft'}</div><div class="poi-meta">${lang === 'zhHans' ? '正在搜索约 3.5 公里范围内的地点。' : 'Wir suchen Orte im Umkreis von ca. 3,5 km.'}</div></div>`;
+      nearbyStatus.textContent = t('searching');
+      poiList.innerHTML = `<div class="poi-item"><div class="poi-name">${t('searching')}</div><div class="poi-meta">${currentLang() === 'zhHans' ? '正在搜索约 3.5 公里范围内的地点。' : 'Wir suchen Orte im Umkreis von ca. 3,5 km.'}</div></div>`;
       try {
         const items = await fetchNearby(currentPosition.lat, currentPosition.lon);
-        poiResults = items;
-        const filtered = poiResults.filter(p => activeKinds.has(p.kind));
-        renderPois(filtered);
-        renderPoiList(filtered);
-        nearbyStatus.textContent = `${filtered.length} ${lang === 'zhHans' ? '个地点找到' : 'Orte gefunden'}`;
-        if (map && filtered.length){
-          const bounds = L.latLngBounds([[currentPosition.lat, currentPosition.lon], ...filtered.slice(0,15).map(p => [p.lat, p.lon])]);
-          map.fitBounds(bounds.pad(0.18));
-        }
-      } catch(e){
-        nearbyStatus.textContent = lang === 'zhHans' ? '搜索失败' : 'Suche fehlgeschlagen';
-        poiList.innerHTML = `<div class="poi-item"><div class="poi-name">${lang === 'zhHans' ? '没有加载数据' : 'Keine Daten geladen'}</div><div class="poi-meta">${lang === 'zhHans' ? '请检查 GPS、HTTPS 或 Overpass 服务。' : 'Bitte GPS, HTTPS oder den Overpass-Dienst prüfen.'}</div></div>`;
-      }
+        poiResults = items; const filtered = poiResults.filter(p => activeKinds.has(p.kind));
+        renderPois(filtered); renderPoiList(filtered); nearbyStatus.textContent = `${filtered.length} ${t('found')}`;
+        if (map && filtered.length){ const bounds = L.latLngBounds([[currentPosition.lat, currentPosition.lon], ...filtered.slice(0,15).map(p => [p.lat, p.lon])]); map.fitBounds(bounds.pad(0.18)); }
+      } catch(e){ nearbyStatus.textContent = t('noData'); poiList.innerHTML = `<div class="poi-item"><div class="poi-name">${t('noData')}</div><div class="poi-meta">${currentLang() === 'zhHans' ? '请检查 GPS、HTTPS 或 Overpass 服务。' : 'Bitte GPS, HTTPS oder den Overpass-Dienst prüfen.'}</div></div>`; }
     }
 
-    function rerenderPois(){
-      const filtered = poiResults.filter(p => activeKinds.has(p.kind));
-      renderPois(filtered);
-      renderPoiList(filtered);
-      nearbyStatus.textContent = `${filtered.length} ${lang === 'zhHans' ? '个地点可见' : 'Orte sichtbar'}`;
-    }
-
-    function updateModuleLabels(){
-      modIntl.checked = true;
-      modIntl.disabled = true;
-    }
+    function rerenderPois(){ const filtered = poiResults.filter(p => activeKinds.has(p.kind)); renderPois(filtered); renderPoiList(filtered); nearbyStatus.textContent = `${filtered.length} ${t('visible')}`; }
 
     function update(){
       const amount = Number(String(amountEl.value).replace(',', '.'));
       const from = fromEl.value, to = toEl.value;
-      const src = getCurrency(from), tgt = getCurrency(to), rate = rateOf(from,to);
+      const src = getCurrency(from), tgt = getCurrency(to), rate = rateOf(from, to);
       const result = Number.isFinite(amount) ? (amount * src.rateToEUR) / tgt.rateToEUR : 0;
-      resultValueEl.textContent = `${fmt(result,2)} ${to}`;
-      resultLabelEl.textContent = `${to} · ${tgt.name}`;
-      rateLineEl.textContent = `1 ${from} = ${fmt(rate,4)} ${to}`;
-      kpiResultEl.textContent = `${fmt(result,2)} ${to}`;
-      kpiRateEl.textContent = fmt(rate,4);
-      kpiFavEl.textContent = String(favorites.length);
-      favBtn.textContent = favorites.includes(to) ? (lang === 'zhHans' ? '移除收藏' : 'Favorit entfernen') : t('favBtn');
-      renderCurrencyStrip(); renderFavorites(); renderHistory(); if (currentPosition) suggestLocalCurrency();
+      resultValueEl.textContent = `${fmt(result, 2)} ${to}`;
+      resultLabelEl.textContent = t('resultLabel').replace('{code}', to).replace('{name}', tgt.name);
+      rateLineEl.textContent = t('rateLine').replace('{from}', from).replace('{rate}', fmt(rate, 4)).replace('{to}', to);
+      favBtn.textContent = favorites.includes(to) ? (currentLang() === 'zhHans' ? '移除收藏' : 'Favorit entfernen') : t('favBtn');
+      localCurrencyHint.textContent = `${t('localCurrency')} ${currentPosition ? from : '–'}`;
+      renderFavorites(); renderHistory();
     }
 
     function syncVisibility(){ mapSection.classList.toggle('hide', !modMap.checked); }
+    function updateOptionsText(){
+      $('modMapTitle').textContent = t('modMapTitle'); $('modMapDesc').textContent = t('modMapDesc'); $('tagMap').textContent = t('tagMap'); $('tagPlaces').textContent = t('tagPlaces');
+      $('modFavTitle').textContent = t('modFavTitle'); $('modFavDesc').textContent = t('modFavDesc'); $('tagTap').textContent = t('tagTap'); $('tagHistory').textContent = t('tagHistory'); $('tagSwitch').textContent = t('tagSwitch');
+      $('modExtrasTitle').textContent = t('modExtrasTitle'); $('modExtrasDesc').textContent = t('modExtrasDesc'); $('tagLater').textContent = t('tagLater');
+      $('modIntlTitle').textContent = t('modIntlTitle'); $('modIntlDesc').textContent = t('modIntlDesc');
+    }
+    function renderAll(){ populateSelects(); updateOptionsText(); update(); }
 
-    function renderAll(){ populateSelects(); update(); }
-
-    // init
-    buildLanguageOptions();
-    setTheme(theme);
-    applyLanguage();
-    fromEl.value='EUR'; toEl.value='USD';
-    syncVisibility();
-    renderAll();
-    updateModuleLabels();
-    localCurrencyHint.textContent = `${t('localCurrency')} –`;
+    buildLanguageOptions(); setTheme(theme); applyLanguage(); fromEl.value = 'PLN'; toEl.value = 'EUR'; renderAll(); syncVisibility();
+    localCurrencySub.textContent = t('localCurrencySub');
 
     amountEl.addEventListener('input', update);
     fromEl.addEventListener('change', update);
     toEl.addEventListener('change', update);
-    searchEl.addEventListener('input', () => { populateSelects(); update(); });
     swapBtn.addEventListener('click', () => { const cur = fromEl.value; fromEl.value = toEl.value; toEl.value = cur; update(); });
     copyBtn.addEventListener('click', async () => {
-      const txt = `1 ${fromEl.value} = ${fmt(rateOf(fromEl.value,toEl.value),4)} ${toEl.value}`;
-      try { await navigator.clipboard.writeText(txt); copyBtn.textContent = lang === 'zhHans' ? '已复制' : 'Kopiert'; setTimeout(() => copyBtn.textContent = t('copyBtn'), 1200); }
-      catch { copyBtn.textContent = lang === 'zhHans' ? '不可用' : 'Nicht verfügbar'; setTimeout(() => copyBtn.textContent = t('copyBtn'), 1200); }
+      const txt = `1 ${fromEl.value} = ${fmt(rateOf(fromEl.value, toEl.value),4)} ${toEl.value}`;
+      try { await navigator.clipboard.writeText(txt); copyBtn.textContent = currentLang() === 'zhHans' ? '已复制' : 'Kopiert'; setTimeout(() => copyBtn.textContent = t('copyBtn'), 1000); }
+      catch { copyBtn.textContent = currentLang() === 'zhHans' ? '不可用' : 'Nicht verfügbar'; setTimeout(() => copyBtn.textContent = t('copyBtn'), 1000); }
     });
     favBtn.addEventListener('click', () => { const code = toEl.value; if (favorites.includes(code)) favorites = favorites.filter(x => x !== code); else favorites = [code, ...favorites].slice(0, 6); localStorage.setItem('fx-favorites', JSON.stringify(favorites)); update(); });
     modeBtn.addEventListener('click', () => setTheme(theme === 'dark' ? 'light' : 'dark'));
     langSelect.addEventListener('change', () => { lang = langSelect.value; localStorage.setItem('fx-lang', lang); applyLanguage(); });
     modMap.addEventListener('change', syncVisibility);
     modFav.addEventListener('change', () => { renderFavorites(); renderHistory(); });
-    modExtras.addEventListener('change', () => { $('statusText').textContent = modExtras.checked ? (lang === 'zhHans' ? '额外功能已准备好' : 'Extras vorbereitet') : t('statusText'); });
+    modExtras.addEventListener('change', () => { $('statusText').textContent = modExtras.checked ? (currentLang() === 'zhHans' ? '额外功能已准备好' : 'Extras vorbereitet') : t('statusText'); });
     modIntl.addEventListener('change', () => { modIntl.checked = true; });
     poiButtons.forEach(btn => btn.addEventListener('click', () => {
       const kind = btn.getAttribute('data-poi'); if (!kind) return;
       if (activeKinds.has(kind)) { if (activeKinds.size === 1) return; activeKinds.delete(kind); } else { activeKinds.add(kind); }
-      btn.classList.toggle('active', activeKinds.has(kind));
-      rerenderPois();
+      btn.classList.toggle('active', activeKinds.has(kind)); rerenderPois();
     }));
-    geoBtn.addEventListener('click', handleGeo);
-    nearBtn.addEventListener('click', handleNearby);
+    $('geoBtn').addEventListener('click', handleGeo);
+    $('nearBtn').addEventListener('click', handleNearby);
     window.addEventListener('resize', () => { if (map) setTimeout(() => map.invalidateSize(), 100); });
-    setInterval(() => { $('kpiUpdate').textContent = new Date().toLocaleTimeString(lang === 'zhHans' ? 'zh-CN' : lang, { hour:'2-digit', minute:'2-digit' }); }, 1000);
+    setInterval(() => { $('autosave').textContent = new Date().toLocaleTimeString(currentLang() === 'zhHans' ? 'zh-CN' : currentLang(), { hour:'2-digit', minute:'2-digit' }); }, 1000);
     initMap(52.52, 13.405);
-    nearbyStatus.textContent = lang === 'zhHans' ? '地图已准备好' : 'Karte bereit';
-    localCurrencySub.textContent = t('localCurrencySub');
-    renderCurrencyStrip();
+    nearbyStatus.textContent = currentLang() === 'zhHans' ? '地图已准备好' : 'Karte bereit';
   </script>
 </body>
 </html>
