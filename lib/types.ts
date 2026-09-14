@@ -27,7 +27,10 @@ export type PhraseItem = {
     | "food"
     | "emergency";
   english: string;
-  local: Record<LanguageCode | "en", string>;
+  local: Record<
+    LanguageCode | "en",
+    string
+  >;
 };
 
 export type ExploreKind =
@@ -38,12 +41,24 @@ export type ExploreKind =
   | "family";
 
 export type ExploreItem = {
+  id?: string;
   title: string;
   kind: ExploreKind;
   emoji: string;
   distance: number;
   rating: number;
   note: string;
+
+  /**
+   * Optional coordinates for real map / routing integration.
+   */
+  lat?: number;
+  lon?: number;
+
+  /**
+   * Optional compatibility field for older modules.
+   */
+  category?: string;
 };
 
 export type EventCategory =
@@ -55,24 +70,84 @@ export type EventCategory =
   | "culture";
 
 export type EventItem = {
+  id?: string;
   title: string;
   category: EventCategory;
   emoji: string;
   time: string;
   duration: string;
   note: string;
+
+  /**
+   * Optional date for event feeds.
+   */
+  date?: string;
+
+  /**
+   * Optional coordinates for real map / routing integration.
+   */
+  lat?: number;
+  lon?: number;
 };
 
+export type FeedTone =
+  | "info"
+  | "success"
+  | "warning"
+  | "accent";
+
+/**
+ * Travel Feed item.
+ *
+ * The model intentionally supports both:
+ *
+ * 1. the newer product structure:
+ *    id / title / subtitle / meta / tone
+ *
+ * 2. the existing feed component structure:
+ *    icon / title / body / priority
+ *
+ * This keeps the modules compatible while the architecture
+ * is being consolidated.
+ */
 export type FeedItem = {
   id: string;
+
+  /**
+   * Main headline.
+   */
   title: string;
-  subtitle: string;
+
+  /**
+   * Newer subtitle field.
+   */
+  subtitle?: string;
+
+  /**
+   * Legacy / compatibility body field used by
+   * travel-feed-module.tsx.
+   */
+  body?: string;
+
+  /**
+   * Optional supporting metadata.
+   */
   meta?: string;
-  tone:
-    | "info"
-    | "success"
-    | "warning"
-    | "accent";
+
+  /**
+   * Optional icon / emoji displayed by the feed.
+   */
+  icon?: string;
+
+  /**
+   * Feed priority. Higher numbers can be surfaced first.
+   */
+  priority?: number;
+
+  /**
+   * Visual semantic tone.
+   */
+  tone?: FeedTone;
 };
 
 export type TravelPhase =
@@ -110,20 +185,17 @@ export type NearbyKind =
   | "cafe"
   | "hotel";
 
-/**
- * Nearby / discovery data model.
- *
- * Both "kind" and "category" are supported because existing
- * modules currently use both naming conventions.
- */
 export type NearbyPlace = {
   id: string;
   title: string;
 
+  /**
+   * Canonical Nearby category.
+   */
   kind: NearbyKind;
 
   /**
-   * Compatibility property used by discovery-module.tsx.
+   * Compatibility property used by older discovery code.
    */
   category?: NearbyKind;
 
