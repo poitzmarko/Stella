@@ -85,7 +85,7 @@ export type TravelPhase =
   | "return";
 
 /**
- * Compatibility alias used by the AppShell.
+ * Compatibility alias used by AppShell and timeline components.
  */
 export type Phase = TravelPhase;
 
@@ -103,21 +103,43 @@ export type LocationPoint = {
   label?: string;
 };
 
+export type NearbyKind =
+  | "atm"
+  | "food"
+  | "drink"
+  | "cafe"
+  | "hotel";
+
+/**
+ * Nearby / discovery data model.
+ *
+ * Both "kind" and "category" are supported because existing
+ * modules currently use both naming conventions.
+ */
 export type NearbyPlace = {
   id: string;
   title: string;
-  kind:
-    | "atm"
-    | "food"
-    | "drink"
-    | "cafe"
-    | "hotel";
+
+  kind: NearbyKind;
+
+  /**
+   * Compatibility property used by discovery-module.tsx.
+   */
+  category?: NearbyKind;
+
   lat: number;
   lon: number;
+
   distance: number;
+
   rating?: number;
+
   note?: string;
-  tags?: Record<string, string | undefined>;
+
+  tags?: Record<
+    string,
+    string | undefined
+  >;
 };
 
 export type MoneyTopic = {
