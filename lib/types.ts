@@ -17,7 +17,7 @@ export type ThemeMode =
   | "dark";
 
 /**
- * Generic currency definition used by the catalog.
+ * Base currency model.
  */
 export type Currency = {
   code: string;
@@ -27,7 +27,7 @@ export type Currency = {
 };
 
 /**
- * Extended currency model for future regional grouping.
+ * Extended currency model for optional regional grouping.
  */
 export type CurrencyItem = Currency & {
   region?: string;
@@ -46,10 +46,7 @@ export type PhraseItem = {
   id: string;
   category: PhraseCategory;
   english: string;
-  local: Record<
-    string,
-    string
-  >;
+  local: Record<string, string>;
 };
 
 export type ExploreKind =
@@ -61,17 +58,11 @@ export type ExploreKind =
 
 export type ExploreItem = {
   id?: string;
-
   title: string;
-
   kind: ExploreKind;
-
   emoji: string;
-
   distance: number;
-
   rating: number;
-
   note: string;
 
   /**
@@ -81,13 +72,12 @@ export type ExploreItem = {
   lon?: number;
 
   /**
-   * Compatibility field used by some discovery
-   * and data-source implementations.
+   * Compatibility property for older modules.
    */
   category?: string;
 
   /**
-   * Optional external source identifier.
+   * Optional external data source.
    */
   source?: string;
 };
@@ -106,17 +96,11 @@ export type EventCategory =
 
 export type EventItem = {
   id?: string;
-
   title: string;
-
   category: EventCategory;
-
   emoji: string;
-
   time: string;
-
   duration: string;
-
   note: string;
 
   /**
@@ -125,13 +109,18 @@ export type EventItem = {
   date?: string;
 
   /**
+   * Distance from the current user location.
+   */
+  distance?: number;
+
+  /**
    * Optional map coordinates.
    */
   lat?: number;
   lon?: number;
 
   /**
-   * Optional external source identifier.
+   * Optional external data source.
    */
   source?: string;
 };
@@ -145,29 +134,45 @@ export type FeedTone =
 /**
  * Travel Feed model.
  *
- * Supports both the current product structure
- * and the fields used by the original mock data.
+ * Supports the current product structure and
+ * the fields used by the existing mock feed.
  */
 export type FeedItem = {
   id: string;
-
   title: string;
 
+  /**
+   * Modern supporting text.
+   */
   subtitle?: string;
 
+  /**
+   * Existing feed body.
+   */
   body?: string;
 
+  /**
+   * Optional metadata.
+   */
   meta?: string;
 
+  /**
+   * Optional icon / emoji.
+   */
   icon?: string;
 
+  /**
+   * Priority used for contextual sorting.
+   */
   priority?: number;
 
+  /**
+   * Visual semantic tone.
+   */
   tone?: FeedTone;
 
   /**
-   * Optional source/category used by
-   * the live/mock feed.
+   * Optional feed category.
    */
   category?: string;
 };
@@ -182,15 +187,13 @@ export type TravelPhase =
   | "return";
 
 /**
- * Compatibility alias used by AppShell.
+ * Compatibility alias used by AppShell
+ * and timeline components.
  */
 export type Phase = TravelPhase;
 
 /**
- * Individual travel timeline item.
- *
- * This is the missing type that caused the current
- * implicit-any error in travel-timeline-module.tsx.
+ * Travel Timeline phase definition.
  */
 export type TimelinePhase = {
   id: TravelPhase;
@@ -207,6 +210,10 @@ export type LocationState = {
   label?: string;
 };
 
+/**
+ * Lightweight location object used by maps and
+ * discovery modules.
+ */
 export type LocationPoint = {
   lat: number;
   lon: number;
@@ -222,24 +229,21 @@ export type NearbyKind =
   | "restaurant"
   | "bar";
 
+/**
+ * Nearby / discovery place.
+ *
+ * "kind" is the canonical property.
+ * "category" remains available for compatibility.
+ */
 export type NearbyPlace = {
   id: string;
-
   title: string;
 
-  /**
-   * Canonical category used by map components.
-   */
   kind: NearbyKind;
 
-  /**
-   * Compatibility category used by the
-   * discovery data source.
-   */
   category?: NearbyKind;
 
   lat: number;
-
   lon: number;
 
   distance: number;
