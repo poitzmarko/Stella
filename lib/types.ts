@@ -1,15 +1,15 @@
 export type LanguageCode =
-  "de" |
-  "en" |
-  "es" |
-  "fr" |
-  "it" |
-  "pt" |
-  "zhHans";
+  | "de"
+  | "en"
+  | "es"
+  | "fr"
+  | "it"
+  | "pt"
+  | "zhHans";
 
 export type ThemeMode =
-  "light" |
-  "dark";
+  | "light"
+  | "dark";
 
 export type CurrencyItem = {
   code: string;
@@ -80,11 +80,12 @@ export type TravelPhase =
   | "airport"
   | "hotel"
   | "trip"
+  | "holiday"
   | "emergency"
   | "return";
 
 /**
- * Alias used by the app shell and timeline components.
+ * Compatibility alias used by the AppShell.
  */
 export type Phase = TravelPhase;
 
@@ -93,6 +94,12 @@ export type LocationState = {
   lon: number;
   city?: string;
   country?: string;
+  label?: string;
+};
+
+export type LocationPoint = {
+  lat: number;
+  lon: number;
   label?: string;
 };
 
@@ -116,10 +123,4 @@ export type NearbyPlace = {
 export type MoneyTopic = {
   title: string;
   desc: string;
-};
-
-export type LocationPoint = {
-  lat: number;
-  lon: number;
-  label?: string;
 };
