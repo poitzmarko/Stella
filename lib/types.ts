@@ -7,6 +7,14 @@ export type LanguageCode =
   | "pt"
   | "zhHans";
 
+/**
+ * Compatibility alias.
+ *
+ * Some UI modules use "Language", while the canonical
+ * application type is "LanguageCode".
+ */
+export type Language = LanguageCode;
+
 export type ThemeMode =
   | "light"
   | "dark";
@@ -42,21 +50,27 @@ export type ExploreKind =
 
 export type ExploreItem = {
   id?: string;
+
   title: string;
+
   kind: ExploreKind;
+
   emoji: string;
+
   distance: number;
+
   rating: number;
+
   note: string;
 
   /**
-   * Optional coordinates for real map / routing integration.
+   * Optional coordinates for real map/routing integration.
    */
   lat?: number;
   lon?: number;
 
   /**
-   * Optional compatibility field for older modules.
+   * Compatibility field for older modules.
    */
   category?: string;
 };
@@ -71,20 +85,26 @@ export type EventCategory =
 
 export type EventItem = {
   id?: string;
+
   title: string;
+
   category: EventCategory;
+
   emoji: string;
+
   time: string;
+
   duration: string;
+
   note: string;
 
   /**
-   * Optional date for event feeds.
+   * Optional event date.
    */
   date?: string;
 
   /**
-   * Optional coordinates for real map / routing integration.
+   * Optional coordinates for real map/routing integration.
    */
   lat?: number;
   lon?: number;
@@ -99,53 +119,41 @@ export type FeedTone =
 /**
  * Travel Feed item.
  *
- * The model intentionally supports both:
- *
- * 1. the newer product structure:
- *    id / title / subtitle / meta / tone
- *
- * 2. the existing feed component structure:
- *    icon / title / body / priority
- *
- * This keeps the modules compatible while the architecture
- * is being consolidated.
+ * Supports both the newer product structure and
+ * the fields currently used by the existing feed module.
  */
 export type FeedItem = {
   id: string;
 
-  /**
-   * Main headline.
-   */
   title: string;
 
   /**
-   * Newer subtitle field.
+   * Newer subtitle structure.
    */
   subtitle?: string;
 
   /**
-   * Legacy / compatibility body field used by
-   * travel-feed-module.tsx.
+   * Existing Travel Feed body field.
    */
   body?: string;
 
   /**
-   * Optional supporting metadata.
+   * Optional metadata.
    */
   meta?: string;
 
   /**
-   * Optional icon / emoji displayed by the feed.
+   * Optional icon / emoji.
    */
   icon?: string;
 
   /**
-   * Feed priority. Higher numbers can be surfaced first.
+   * Optional priority.
    */
   priority?: number;
 
   /**
-   * Visual semantic tone.
+   * Visual tone.
    */
   tone?: FeedTone;
 };
@@ -185,21 +193,24 @@ export type NearbyKind =
   | "cafe"
   | "hotel";
 
+/**
+ * Nearby / discovery data model.
+ *
+ * "kind" is the canonical field.
+ * "category" remains available for compatibility with
+ * existing discovery components.
+ */
 export type NearbyPlace = {
   id: string;
+
   title: string;
 
-  /**
-   * Canonical Nearby category.
-   */
   kind: NearbyKind;
 
-  /**
-   * Compatibility property used by older discovery code.
-   */
   category?: NearbyKind;
 
   lat: number;
+
   lon: number;
 
   distance: number;
