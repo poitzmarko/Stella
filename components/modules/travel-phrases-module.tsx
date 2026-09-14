@@ -1,78 +1,349 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { useI18n } from '@/lib/i18n';
-import { phrases } from '@/lib/mock-data';
-import type { Language } from '@/lib/types';
+import { useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+
+import { useI18n } from "@/lib/i18n";
+import { phrases } from "@/lib/mock-data";
+import type { Language } from "@/lib/types";
 
 const categories = [
-  { id: 'hotel', label: 'Hotel' },
-  { id: 'restaurant', label: 'Restaurant' },
-  { id: 'taxi', label: 'Taxi' },
-  { id: 'emergency', label: 'Emergency' },
-  { id: 'shopping', label: 'Shopping' }
+  {
+    id: "hotel",
+    label: "Hotel",
+  },
+  {
+    id: "restaurant",
+    label: "Restaurant",
+  },
+  {
+    id: "taxi",
+    label: "Taxi",
+  },
+  {
+    id: "emergency",
+    label: "Emergency",
+  },
+  {
+    id: "shopping",
+    label: "Shopping",
+  },
 ] as const;
+
+type PhraseCategory =
+  (typeof categories)[number]["id"];
 
 type Props = {
   locale: Language;
 };
 
-export function TravelPhrasesModule({ locale }: Props) {
+function getLocalPhrase(
+  local: Record<string, string>,
+  locale: Language,
+): string {
+  /*
+   * The project uses "zhHans" as application locale,
+   * while some existing phrase data uses "zh".
+   */
+  const localKey =
+    locale === "zhHans"
+      ? "zh"
+      : locale;
+
+  return (
+    local[localKey] ??
+    local.en ??
+    local.de ??
+    ""
+  );
+}
+
+function getSpeechLanguage(
+  locale: Language,
+): string {
+  switch (locale) {
+    case "de":
+      return "de-DE";
+
+    case "en":
+      return "en-US";
+
+    case "es":
+      return "es-ES";
+
+    case "fr":
+      return "fr-FR";
+
+    case "it":
+      return "it-IT";
+
+    case "pt":
+      return "pt-PT";
+
+    case "zhHans":
+      return "zh-CN";
+
+    default:
+      return "en-US";
+  }
+}
+
+export function TravelPhrasesModule({
+  locale,
+}: Props) {
   const { t } = useI18n();
-  const [category, setCategory] = useState<(typeof categories)[number]['id']>('hotel');
-  const [showLocal, setShowLocal] = useState(true);
 
-  const filtered = useMemo(() => phrases.filter((p) => p.category === category), [category]);
+  const [
+    category,
+    setCategory,
+  ] = useState<PhraseCategory>(
+    "hotel",
+  );
 
-  const speak = (english: string, local: string) => {
-    if (!('speechSynthesis' in window)) return;
+  const [
+    showLocal,
+    setShowLocal,
+  ] = useState(true);
+
+  const filtered = useMemo(
+    () =>
+      phrases.filter(
+        (phrase) =>
+          phrase.category === category,
+      ),
+    [category],
+  );
+
+  const speak = (
+    english: string,
+    local: string,
+  ) => {
+    if (
+      !(
+        "speechSynthesis" in
+        window
+      )
+    ) {
+      return;
+    }
+
     window.speechSynthesis.cancel();
-    const utterances = [english, showLocal ? local : null].filter(Boolean) as string[];
-    utterances.forEach((text, index) => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = index === 0 ? 'en-US' : locale === 'zh' ? 'zh-CN' : `${locale}-${locale.toUpperCase()}`;
-      window.setTimeout(() => window.speechSynthesis.speak(u), index * 700);
-    });
+
+    const texts = [
+      english,
+      ...(showLocal && local
+        ? [local]
+        : []),
+    ];
+
+    texts.forEach(
+      (text, index) => {
+        const utterance =
+          new SpeechSynthesisUtterance(
+            text,
+          );
+
+        utterance.lang =
+          index === 0
+            ? "en-US"
+            : getSpeechLanguage(
+                locale,
+              );
+
+        window.setTimeout(() => {
+          window.speechSynthesis.speak(
+            utterance,
+          );
+        }, index * 700);
+      },
+    );
+  };
+
+  const copyPhrase = async (
+    phrase: string,
+  ) => {
+    try {
+      await navigator.clipboard.writeText(
+        phrase,
+      );
+    } catch {
+      /*
+       * Clipboard access can be denied in
+       * non-secure or restricted browser contexts.
+       * The phrase remains fully usable.
+       */
+    }
+  };
+
+  const getCategoryLabel = (
+    item: (typeof categories)[number],
+  ) => {
+    switch (item.id) {
+      case "hotel":
+        return t("phaseHotel");
+
+      case "restaurant":
+        return "Restaurant";
+
+      case "taxi":
+        return "Taxi";
+
+      case "emergency":
+        return t("emergency");
+
+      case "shopping":
+        return "Shopping";
+
+      default:
+        return item.label;
+    }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('phrases')}</CardTitle>
-        <CardDescription>{t('phrasesEmpty')}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <Tabs>
-          <TabsList>
-            {categories.map((item) => (
-              <TabsTrigger key={item.id} active={item.id === category} onClick={() => setCategory(item.id)}>
-                {item.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        <CardTitle>
+          {t("phrases")}
+        </CardTitle>
 
-        <div className="flex items-center justify-between rounded-[1.2rem] border border-border bg-white/60 p-3 dark:bg-slate-950/30">
-          <div className="text-sm font-semibold">{t('showLocalLanguage')}</div>
-          <Switch checked={showLocal} onChange={(e) => setShowLocal(e.currentTarget.checked)} />
+        <CardDescription>
+          {t("phrasesHint")}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="grid gap-4">
+        <div className="overflow-x-auto pb-1">
+          <Tabs>
+            <TabsList>
+              {categories.map(
+                (item) => (
+                  <TabsTrigger
+                    key={item.id}
+                    active={
+                      item.id === category
+                    }
+                    onClick={() =>
+                      setCategory(
+                        item.id,
+                      )
+                    }
+                  >
+                    {getCategoryLabel(
+                      item,
+                    )}
+                  </TabsTrigger>
+                ),
+              )}
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-border bg-white/60 p-3 dark:bg-slate-950/30">
+          <div>
+            <div className="text-sm font-semibold">
+              {t("showLocal")}
+            </div>
+
+            <div className="mt-1 text-xs text-muted">
+              {locale ===
+              "zhHans"
+                ? "English + 中文"
+                : `English + ${locale.toUpperCase()}`}
+            </div>
+          </div>
+
+          <Switch
+            checked={showLocal}
+            onChange={(event) =>
+              setShowLocal(
+                event.currentTarget.checked,
+              )
+            }
+          />
         </div>
 
         <div className="grid gap-2 md:grid-cols-2">
-          {filtered.map((item) => (
-            <div key={item.id} className="rounded-[1.2rem] border border-border bg-surface p-3 shadow-soft">
-              <div className="text-sm font-semibold leading-6">{item.english}</div>
-              {showLocal && <div className="mt-1 text-sm text-muted">{item.local[locale]}</div>}
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => navigator.clipboard.writeText(item.english)} className="rounded-full">{t('copy')}</Button>
-                <Button size="sm" variant="secondary" onClick={() => speak(item.english, item.local[locale])} className="rounded-full">{t('speak')}</Button>
-              </div>
-            </div>
-          ))}
+          {filtered.map(
+            (item) => {
+              const localPhrase =
+                getLocalPhrase(
+                  item.local as Record<
+                    string,
+                    string
+                  >,
+                  locale,
+                );
+
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-[1.2rem] border border-border bg-surface p-3 shadow-soft"
+                >
+                  <div className="text-sm font-semibold leading-6">
+                    {item.english}
+                  </div>
+
+                  {showLocal &&
+                    localPhrase && (
+                      <div className="mt-1 text-sm text-muted">
+                        {
+                          localPhrase
+                        }
+                      </div>
+                    )}
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        void copyPhrase(
+                          item.english,
+                        )
+                      }
+                      className="rounded-full"
+                    >
+                      📋 Copy
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        speak(
+                          item.english,
+                          localPhrase,
+                        )
+                      }
+                      className="rounded-full"
+                    >
+                      🔊 {t("speak")}
+                    </Button>
+                  </div>
+                </div>
+              );
+            },
+          )}
         </div>
+
+        {filtered.length === 0 && (
+          <div className="rounded-[1.2rem] border border-border bg-surface p-4 text-sm text-muted">
+            {t("empty")}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
