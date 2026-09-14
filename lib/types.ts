@@ -8,10 +8,7 @@ export type LanguageCode =
   | "zhHans";
 
 /**
- * Compatibility alias.
- *
- * Some UI modules use "Language", while the canonical
- * application type is "LanguageCode".
+ * Compatibility alias used by existing UI modules.
  */
 export type Language = LanguageCode;
 
@@ -19,24 +16,38 @@ export type ThemeMode =
   | "light"
   | "dark";
 
-export type CurrencyItem = {
+/**
+ * Generic currency definition used by the catalog.
+ */
+export type Currency = {
   code: string;
   name: string;
   flag: string;
   rateToEUR: number;
-  region: string;
 };
+
+/**
+ * Extended currency model for future regional grouping.
+ */
+export type CurrencyItem = Currency & {
+  region?: string;
+};
+
+export type PhraseCategory =
+  | "hotel"
+  | "transport"
+  | "food"
+  | "emergency"
+  | "restaurant"
+  | "taxi"
+  | "shopping";
 
 export type PhraseItem = {
   id: string;
-  category:
-    | "hotel"
-    | "transport"
-    | "food"
-    | "emergency";
+  category: PhraseCategory;
   english: string;
   local: Record<
-    LanguageCode | "en",
+    string,
     string
   >;
 };
@@ -64,15 +75,21 @@ export type ExploreItem = {
   note: string;
 
   /**
-   * Optional coordinates for real map/routing integration.
+   * Optional map coordinates.
    */
   lat?: number;
   lon?: number;
 
   /**
-   * Compatibility field for older modules.
+   * Compatibility field used by some discovery
+   * and data-source implementations.
    */
   category?: string;
+
+  /**
+   * Optional external source identifier.
+   */
+  source?: string;
 };
 
 export type EventCategory =
@@ -81,7 +98,11 @@ export type EventCategory =
   | "outdoor"
   | "family"
   | "food"
-  | "culture";
+  | "culture"
+  | "market"
+  | "cinema"
+  | "festival"
+  | "harbour";
 
 export type EventItem = {
   id?: string;
@@ -104,10 +125,15 @@ export type EventItem = {
   date?: string;
 
   /**
-   * Optional coordinates for real map/routing integration.
+   * Optional map coordinates.
    */
   lat?: number;
   lon?: number;
+
+  /**
+   * Optional external source identifier.
+   */
+  source?: string;
 };
 
 export type FeedTone =
@@ -117,45 +143,33 @@ export type FeedTone =
   | "accent";
 
 /**
- * Travel Feed item.
+ * Travel Feed model.
  *
- * Supports both the newer product structure and
- * the fields currently used by the existing feed module.
+ * Supports both the current product structure
+ * and the fields used by the original mock data.
  */
 export type FeedItem = {
   id: string;
 
   title: string;
 
-  /**
-   * Newer subtitle structure.
-   */
   subtitle?: string;
 
-  /**
-   * Existing Travel Feed body field.
-   */
   body?: string;
 
-  /**
-   * Optional metadata.
-   */
   meta?: string;
 
-  /**
-   * Optional icon / emoji.
-   */
   icon?: string;
 
-  /**
-   * Optional priority.
-   */
   priority?: number;
 
-  /**
-   * Visual tone.
-   */
   tone?: FeedTone;
+
+  /**
+   * Optional source/category used by
+   * the live/mock feed.
+   */
+  category?: string;
 };
 
 export type TravelPhase =
@@ -168,9 +182,22 @@ export type TravelPhase =
   | "return";
 
 /**
- * Compatibility alias used by AppShell and timeline components.
+ * Compatibility alias used by AppShell.
  */
 export type Phase = TravelPhase;
+
+/**
+ * Individual travel timeline item.
+ *
+ * This is the missing type that caused the current
+ * implicit-any error in travel-timeline-module.tsx.
+ */
+export type TimelinePhase = {
+  id: TravelPhase;
+  title: string;
+  description: string;
+  highlights: string[];
+};
 
 export type LocationState = {
   lat: number;
@@ -191,22 +218,24 @@ export type NearbyKind =
   | "food"
   | "drink"
   | "cafe"
-  | "hotel";
+  | "hotel"
+  | "restaurant"
+  | "bar";
 
-/**
- * Nearby / discovery data model.
- *
- * "kind" is the canonical field.
- * "category" remains available for compatibility with
- * existing discovery components.
- */
 export type NearbyPlace = {
   id: string;
 
   title: string;
 
+  /**
+   * Canonical category used by map components.
+   */
   kind: NearbyKind;
 
+  /**
+   * Compatibility category used by the
+   * discovery data source.
+   */
   category?: NearbyKind;
 
   lat: number;
@@ -223,6 +252,8 @@ export type NearbyPlace = {
     string,
     string | undefined
   >;
+
+  source?: string;
 };
 
 export type MoneyTopic = {
