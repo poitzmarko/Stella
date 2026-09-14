@@ -12,3 +12,8 @@ export type TravelPhase = 'home' | 'airport' | 'hotel' | 'trip' | 'emergency' | 
 export type LocationState = { lat: number; lon: number; city?: string; country?: string; label?: string };
 export type NearbyPlace = { id: string; title: string; kind: 'atm' | 'food' | 'drink' | 'cafe' | 'hotel'; lat: number; lon: number; distance: number; rating?: number; note?: string; tags?: Record<string, string | undefined> };
 export type MoneyTopic = { title: string; desc: string };
+export type LocationPoint = {
+  lat: number;
+  lon: number;
+  label?: string;
+};
