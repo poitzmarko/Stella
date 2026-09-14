@@ -51,14 +51,16 @@ type Props = {
   locale: Language;
 };
 
+/**
+ * Returns the localized phrase where possible.
+ *
+ * The application uses "zhHans" as its language code,
+ * while some phrase data can use "zh".
+ */
 function getLocalPhrase(
   local: Record<string, string>,
   locale: Language,
 ): string {
-  /*
-   * The project uses "zhHans" as application locale,
-   * while some existing phrase data uses "zh".
-   */
   const localKey =
     locale === "zhHans"
       ? "zh"
@@ -72,6 +74,10 @@ function getLocalPhrase(
   );
 }
 
+/**
+ * Maps application languages to browser speech-synthesis
+ * language identifiers.
+ */
 function getSpeechLanguage(
   locale: Language,
 ): string {
@@ -96,11 +102,25 @@ function getSpeechLanguage(
 
     case "zhHans":
       return "zh-CN";
-
-    default:
-      return "en-US";
   }
 }
+
+/**
+ * Category labels.
+ *
+ * This uses a typed lookup instead of an exhaustive switch,
+ * avoiding "never" inference problems in TypeScript.
+ */
+const categoryLabels: Record<
+  PhraseCategory,
+  string
+> = {
+  hotel: "Hotel",
+  restaurant: "Restaurant",
+  taxi: "Taxi",
+  emergency: "Emergency",
+  shopping: "Shopping",
+};
 
 export function TravelPhrasesModule({
   locale,
@@ -164,11 +184,14 @@ export function TravelPhrasesModule({
                 locale,
               );
 
-        window.setTimeout(() => {
-          window.speechSynthesis.speak(
-            utterance,
-          );
-        }, index * 700);
+        window.setTimeout(
+          () => {
+            window.speechSynthesis.speak(
+              utterance,
+            );
+          },
+          index * 700,
+        );
       },
     );
   };
@@ -183,33 +206,8 @@ export function TravelPhrasesModule({
     } catch {
       /*
        * Clipboard access can be denied in
-       * non-secure or restricted browser contexts.
-       * The phrase remains fully usable.
+       * restricted browser contexts.
        */
-    }
-  };
-
-  const getCategoryLabel = (
-    item: (typeof categories)[number],
-  ) => {
-    switch (item.id) {
-      case "hotel":
-        return t("phaseHotel");
-
-      case "restaurant":
-        return "Restaurant";
-
-      case "taxi":
-        return "Taxi";
-
-      case "emergency":
-        return t("emergency");
-
-      case "shopping":
-        return "Shopping";
-
-      default:
-        return item.label;
     }
   };
 
@@ -234,7 +232,8 @@ export function TravelPhrasesModule({
                   <TabsTrigger
                     key={item.id}
                     active={
-                      item.id === category
+                      item.id ===
+                      category
                     }
                     onClick={() =>
                       setCategory(
@@ -242,9 +241,9 @@ export function TravelPhrasesModule({
                       )
                     }
                   >
-                    {getCategoryLabel(
-                      item,
-                    )}
+                    {categoryLabels[
+                      item.id
+                    ]}
                   </TabsTrigger>
                 ),
               )}
@@ -270,7 +269,8 @@ export function TravelPhrasesModule({
             checked={showLocal}
             onChange={(event) =>
               setShowLocal(
-                event.currentTarget.checked,
+                event.currentTarget
+                  .checked,
               )
             }
           />
@@ -309,12 +309,12 @@ export function TravelPhrasesModule({
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button
                       size="sm"
+                      className="rounded-full"
                       onClick={() =>
                         void copyPhrase(
                           item.english,
                         )
                       }
-                      className="rounded-full"
                     >
                       📋 Copy
                     </Button>
@@ -322,15 +322,16 @@ export function TravelPhrasesModule({
                     <Button
                       size="sm"
                       variant="secondary"
+                      className="rounded-full"
                       onClick={() =>
                         speak(
                           item.english,
                           localPhrase,
                         )
                       }
-                      className="rounded-full"
                     >
-                      🔊 {t("speak")}
+                      🔊{" "}
+                      {t("speak")}
                     </Button>
                   </div>
                 </div>
