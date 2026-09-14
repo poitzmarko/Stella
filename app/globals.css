@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root { color-scheme: light; }
+html[data-theme='dark'] { color-scheme: dark; }
+html, body { height: 100%; }
+body { @apply bg-slate-950 text-slate-100 antialiased; }
+* { -webkit-tap-highlight-color: transparent; }
+::selection { @apply bg-cyan-500/30; }
+.leaflet-container { @apply rounded-3xl; }
