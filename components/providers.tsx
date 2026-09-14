@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import { I18nProvider } from '@/lib/i18n';
+import type { ReactNode } from "react";
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  return <I18nProvider>{children}</I18nProvider>;
+type ProvidersProps = {
+  children: ReactNode;
+};
+
+export function Providers({
+  children,
+}: ProvidersProps) {
+  return <>{children}</>;
 }
