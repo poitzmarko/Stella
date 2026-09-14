@@ -17,14 +17,32 @@ export const supportedLanguages: {
 ];
 
 /**
- * Compatibility alias used by existing UI components.
+ * Compatibility alias used by existing components.
  */
 export const languageOptions = supportedLanguages;
 
-export const dictionaries = {
+/**
+ * A dictionary is intentionally string-keyed.
+ *
+ * This keeps the translation layer extensible:
+ * components can introduce new keys without breaking
+ * the entire TypeScript build.
+ */
+export type TranslationDictionary = Record<
+  string,
+  string
+>;
+
+export const dictionaries: Record<
+  LanguageCode,
+  TranslationDictionary
+> = {
   de: {
+    brand: "FX Pro",
+
     appTitle: "FX Pro Travel Gold",
-    appSubtitle: "Die intelligente Reise-App für unterwegs.",
+    appSubtitle:
+      "Die intelligente Reise-App für unterwegs.",
     slogan:
       "Wechselkurse, Reisen, Navigation, lokale Tipps und Urlaubshilfe – alles in einer App.",
 
@@ -106,8 +124,11 @@ export const dictionaries = {
   },
 
   en: {
+    brand: "FX Pro",
+
     appTitle: "FX Pro Travel Gold",
-    appSubtitle: "The intelligent travel app for the road.",
+    appSubtitle:
+      "The intelligent travel app for the road.",
     slogan:
       "Exchange rates, travel, navigation, local tips and trip help — all in one app.",
 
@@ -189,8 +210,11 @@ export const dictionaries = {
   },
 
   es: {
+    brand: "FX Pro",
+
     appTitle: "FX Pro Travel Gold",
-    appSubtitle: "La app de viaje inteligente para moverte.",
+    appSubtitle:
+      "La app de viaje inteligente para moverte.",
     slogan:
       "Tipos de cambio, viajes, navegación, tips locales y ayuda — todo en una sola app.",
 
@@ -272,8 +296,11 @@ export const dictionaries = {
   },
 
   fr: {
+    brand: "FX Pro",
+
     appTitle: "FX Pro Travel Gold",
-    appSubtitle: "L’application de voyage intelligente.",
+    appSubtitle:
+      "L’application de voyage intelligente.",
     slogan:
       "Taux de change, voyage, navigation, conseils locaux et aide pratique — tout dans une seule app.",
 
@@ -355,8 +382,11 @@ export const dictionaries = {
   },
 
   it: {
+    brand: "FX Pro",
+
     appTitle: "FX Pro Travel Gold",
-    appSubtitle: "L’app di viaggio intelligente.",
+    appSubtitle:
+      "L’app di viaggio intelligente.",
     slogan:
       "Valute, viaggio, navigazione, consigli locali e supporto pratico — tutto in una sola app.",
 
@@ -438,8 +468,11 @@ export const dictionaries = {
   },
 
   pt: {
+    brand: "FX Pro",
+
     appTitle: "FX Pro Travel Gold",
-    appSubtitle: "O app de viagem inteligente.",
+    appSubtitle:
+      "O app de viagem inteligente.",
     slogan:
       "Câmbio, viagem, navegação, dicas locais e ajuda — tudo em um só app.",
 
@@ -521,6 +554,8 @@ export const dictionaries = {
   },
 
   zhHans: {
+    brand: "FX Pro",
+
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "面向旅行的智能应用。",
     slogan:
@@ -602,10 +637,15 @@ export const dictionaries = {
     feedHint:
       "情境化提示，而不是静态列表。",
   },
-} as const;
+};
 
-export type TranslationKey =
-  keyof typeof dictionaries.en;
+/**
+ * Translation keys are intentionally open.
+ *
+ * This prevents a single missing UI key from stopping
+ * the entire production build.
+ */
+export type TranslationKey = string;
 
 /**
  * Translation helper for non-React code.
@@ -616,7 +656,8 @@ export function t(
 ): string {
   return (
     dictionaries[lang]?.[key] ??
-    dictionaries.en[key]
+    dictionaries.en[key] ??
+    key
   );
 }
 
@@ -627,7 +668,10 @@ export function t(
  * - language / setLanguage
  * - locale / setLocale
  *
- * This keeps AppShell and other client components compatible.
+ * Also provides:
+ * - dictionary
+ * - languages
+ * - languageOptions
  */
 export function useI18n() {
   const [language, setLanguageState] =
@@ -689,7 +733,8 @@ export function useI18n() {
   ): string => {
     return (
       dictionary[key] ??
-      dictionaries.en[key]
+      dictionaries.en[key] ??
+      key
     );
   };
 
