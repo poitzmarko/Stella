@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { LanguageCode } from "./types";
 
-export const supportedLanguages: { code: LanguageCode; label: string }[] = [
+export const supportedLanguages: {
+  code: LanguageCode;
+  label: string;
+}[] = [
   { code: "de", label: "Deutsch" },
   { code: "en", label: "English" },
   { code: "es", label: "Español" },
@@ -14,13 +17,11 @@ export const supportedLanguages: { code: LanguageCode; label: string }[] = [
 ];
 
 /**
- * Backward-compatible alias.
- * app-shell.tsx expects languageOptions.
+ * Alias for components that use the name "languageOptions".
  */
 export const languageOptions = supportedLanguages;
 
 export const dictionaries = {
-  // DE
   de: {
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "Die intelligente Reise-App für unterwegs.",
@@ -84,7 +85,6 @@ export const dictionaries = {
       "Situationsabhängige Hinweise statt starrer Listen.",
   },
 
-  // EN
   en: {
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "The intelligent travel app for the road.",
@@ -148,7 +148,6 @@ export const dictionaries = {
       "Situational hints instead of static lists.",
   },
 
-  // ES
   es: {
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "La app de viaje inteligente para moverte.",
@@ -216,7 +215,6 @@ export const dictionaries = {
       "Sugerencias situacionales en vez de listas estáticas.",
   },
 
-  // FR
   fr: {
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "L’application de voyage intelligente.",
@@ -284,7 +282,6 @@ export const dictionaries = {
       "Conseils contextuels plutôt que listes statiques.",
   },
 
-  // IT
   it: {
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "L’app di viaggio intelligente.",
@@ -352,7 +349,6 @@ export const dictionaries = {
       "Suggerimenti contestuali invece di liste statiche.",
   },
 
-  // PT
   pt: {
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "O app de viagem inteligente.",
@@ -420,7 +416,6 @@ export const dictionaries = {
       "Dicas contextuais em vez de listas estáticas.",
   },
 
-  // ZH
   zhHans: {
     appTitle: "FX Pro Travel Gold",
     appSubtitle: "面向旅行的智能应用。",
@@ -488,10 +483,11 @@ export const dictionaries = {
   },
 } as const;
 
-export type TranslationKey = keyof typeof dictionaries.en;
+export type TranslationKey =
+  keyof typeof dictionaries.en;
 
 /**
- * Simple translation lookup.
+ * Translation helper for non-React code.
  */
 export function t(
   lang: LanguageCode,
@@ -501,15 +497,23 @@ export function t(
 }
 
 /**
- * React hook used by interactive client components.
+ * React i18n hook.
  *
- * Persists the language selection in localStorage.
+ * Supports both naming conventions:
+ * - language / setLanguage
+ * - locale / setLocale
+ *
+ * This keeps AppShell and future components compatible.
  */
 export function useI18n() {
-  const [language, setLanguageState] = useState<LanguageCode>("de");
+  const [language, setLanguageState] =
+    useState<LanguageCode>("de");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("fx-pro-language");
+    const stored =
+      window.localStorage.getItem(
+        "fx-pro-language",
+      );
 
     if (
       stored &&
@@ -517,23 +521,31 @@ export function useI18n() {
         (item) => item.code === stored,
       )
     ) {
-      setLanguageState(stored as LanguageCode);
+      setLanguageState(
+        stored as LanguageCode,
+      );
       return;
     }
 
-    const browserLanguage = navigator.language.split("-")[0];
+    const browserLanguage =
+      navigator.language.split("-")[0];
 
     if (
       supportedLanguages.some(
         (item) => item.code === browserLanguage,
       )
     ) {
-      setLanguageState(browserLanguage as LanguageCode);
+      setLanguageState(
+        browserLanguage as LanguageCode,
+      );
     }
   }, []);
 
-  const setLanguage = (nextLanguage: LanguageCode) => {
+  const setLanguage = (
+    nextLanguage: LanguageCode,
+  ) => {
     setLanguageState(nextLanguage);
+
     window.localStorage.setItem(
       "fx-pro-language",
       nextLanguage,
@@ -541,16 +553,37 @@ export function useI18n() {
   };
 
   const dictionary = useMemo(
-    () => dictionaries[language] ?? dictionaries.en,
+    () =>
+      dictionaries[language] ??
+      dictionaries.en,
     [language],
   );
 
+  const translate = (
+    key: TranslationKey,
+  ): string => {
+    return (
+      dictionary[key] ??
+      dictionaries.en[key]
+    );
+  };
+
   return {
+    // Primary API
     language,
     setLanguage,
+
+    // Compatibility API used by AppShell
+    locale: language,
+    setLocale: setLanguage,
+
+    // Current dictionary
     dictionary,
-    t: (key: TranslationKey) =>
-      dictionary[key] ?? dictionaries.en[key],
+
+    // Translation function
+    t: translate,
+
+    // Language metadata
     languages: supportedLanguages,
     languageOptions,
   };
