@@ -82,6 +82,7 @@ function getCurrency(code: string) {
 
 function normalizeRateMap(rates: Record<string, number>) {
   const result: Record<string, number> = { ...rates };
+
   const looksLikePerEur = Object.entries(rates).some(
     ([code, value]) => code !== "EUR" && value > 1,
   );
@@ -135,14 +136,18 @@ export function AppShell() {
   const [amount, setAmount] = useState("250");
   const [fromCurrency, setFromCurrency] = useState("EUR");
   const [toCurrency, setToCurrency] = useState("PLN");
+
   const [rates, setRates] = useState<Record<string, number>>(
     normalizeRateMap(baseRates),
   );
+
   const [ratesLoading, setRatesLoading] = useState(true);
+
   const [favoriteCurrencies, setFavoriteCurrencies] = useState<string[]>([]);
 
   const [location, setLocation] = useState<LocationPoint>(defaultLocation);
   const [cityLabel, setCityLabel] = useState("Miedzyzdroje");
+
   const [locationStatus, setLocationStatus] = useState<
     "idle" | "loading" | "ready" | "denied" | "error"
   >("idle");
@@ -163,20 +168,30 @@ export function AppShell() {
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(STORAGE.theme);
+
     if (storedTheme === "dark" || storedTheme === "light") {
       setTheme(storedTheme);
     }
 
     const storedFrom = window.localStorage.getItem(STORAGE.from);
     const storedTo = window.localStorage.getItem(STORAGE.to);
-    if (storedFrom && currencyCatalog.some((item) => item.code === storedFrom)) {
+
+    if (
+      storedFrom &&
+      currencyCatalog.some((item) => item.code === storedFrom)
+    ) {
       setFromCurrency(storedFrom);
     }
-    if (storedTo && currencyCatalog.some((item) => item.code === storedTo)) {
+
+    if (
+      storedTo &&
+      currencyCatalog.some((item) => item.code === storedTo)
+    ) {
       setToCurrency(storedTo);
     }
 
     const storedFavorites = window.localStorage.getItem(STORAGE.favorites);
+
     if (storedFavorites) {
       try {
         setFavoriteCurrencies(JSON.parse(storedFavorites));
@@ -193,14 +208,21 @@ export function AppShell() {
 
   useEffect(() => {
     let alive = true;
+
     setRatesLoading(true);
+
     fetchExchangeRates()
       .then((result) => {
-        if (!alive) return;
+        if (!alive) {
+          return;
+        }
+
         setRates(normalizeRateMap(result));
       })
       .finally(() => {
-        if (alive) setRatesLoading(false);
+        if (alive) {
+          setRatesLoading(false);
+        }
       });
 
     return () => {
@@ -223,11 +245,13 @@ export function AppShell() {
   const loadLocalData = useCallback(
     async (point: LocationPoint) => {
       setDataLoading(true);
+
       try {
         const [nearbyResult, eventResult] = await Promise.all([
           fetchNearbyPlaces(point),
           fetchLocalEvents(point, stayDays),
         ]);
+
         setNearby(nearbyResult ?? []);
         setEvents(eventResult ?? []);
       } finally {
@@ -248,16 +272,19 @@ export function AppShell() {
     }
 
     setLocationStatus("loading");
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const nextLocation = {
           lat: position.coords.latitude,
           lon: position.coords.longitude,
         };
+
         setLocation(nextLocation);
         setLocationStatus("ready");
 
         const resolvedCity = await reverseGeocode(nextLocation);
+
         if (resolvedCity && resolvedCity !== "Local area") {
           setCityLabel(resolvedCity.split(",")[0]);
         }
@@ -273,6 +300,7 @@ export function AppShell() {
 
   const resultAmount = useMemo(() => {
     const parsed = Number(String(amount).replace(",", "."));
+
     return convertAmount(
       Number.isFinite(parsed) ? parsed : 0,
       fromCurrency,
@@ -298,15 +326,9 @@ export function AppShell() {
     [],
   );
 
-  const eventPreview = useMemo(
-    () => events.slice(0, 3),
-    [events],
-  );
+  const eventPreview = useMemo(() => events.slice(0, 3), [events]);
 
-  const nearbyPreview = useMemo(
-    () => nearby.slice(0, 4),
-    [nearby],
-  );
+  const nearbyPreview = useMemo(() => nearby.slice(0, 4), [nearby]);
 
   const scrollTo = (target: React.RefObject<HTMLElement | null>) => {
     target.current?.scrollIntoView({
@@ -332,7 +354,10 @@ export function AppShell() {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(marker);
-      window.setTimeout(() => setCopied(null), 1600);
+
+      window.setTimeout(() => {
+        setCopied(null);
+      }, 1600);
     } catch {
       setCopied(null);
     }
@@ -341,10 +366,11 @@ export function AppShell() {
   const sharePhrase = (phrase: string) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(phrase);
       utterance.lang = "en-US";
+
       window.speechSynthesis.speak(utterance);
-      return;
     }
   };
 
@@ -352,14 +378,19 @@ export function AppShell() {
     setMobileTab(tab);
     setMobileMenu(false);
 
-    const mapping: Record<MobileTab, React.RefObject<HTMLElement | null> | null> = {
+    const mapping: Record<
+      MobileTab,
+      React.RefObject<HTMLElement | null> | null
+    > = {
       home: feedRef,
       money: currencyRef,
       nearby: nearbyRef,
       phrases: phrasesRef,
       sos: sosRef,
     };
+
     const target = mapping[tab];
+
     if (target) {
       window.setTimeout(() => scrollTo(target), 40);
     }
@@ -379,10 +410,12 @@ export function AppShell() {
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-500 text-white shadow-premium transition-transform group-active:scale-95">
               <Globe2 className="h-5 w-5" />
             </div>
+
             <div className="min-w-0">
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
                 FX Pro
               </div>
+
               <div className="truncate text-[15px] font-bold tracking-tight sm:text-base">
                 Travel Gold
               </div>
@@ -402,7 +435,9 @@ export function AppShell() {
             <select
               aria-label="Language"
               value={language}
-              onChange={(event) => setLanguage(event.target.value as typeof language)}
+              onChange={(event) =>
+                setLanguage(event.target.value as typeof language)
+              }
               className="h-10 rounded-full border border-border bg-surface px-3 text-sm font-semibold outline-none"
             >
               {languages.map((item) => (
@@ -414,7 +449,11 @@ export function AppShell() {
 
             <button
               type="button"
-              onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
+              onClick={() =>
+                setTheme((current) =>
+                  current === "light" ? "dark" : "light",
+                )
+              }
               aria-label={theme === "light" ? "Dark mode" : "Light mode"}
               className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface shadow-soft transition hover:-translate-y-0.5"
             >
@@ -443,13 +482,22 @@ export function AppShell() {
               <MapPin className="h-4 w-4" />
               <span className="max-w-24 truncate">{cityLabel}</span>
             </button>
+
             <button
               type="button"
-              onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
+              onClick={() =>
+                setTheme((current) =>
+                  current === "light" ? "dark" : "light",
+                )
+              }
               aria-label="Theme"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface"
             >
-              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {theme === "light" ? (
+                <Moon className="h-4 w-4" />
+              ) : (
+                <Sun className="h-4 w-4" />
+              )}
             </button>
           </div>
         </div>
@@ -459,15 +507,18 @@ export function AppShell() {
         <section className="grid gap-4 lg:grid-cols-[1.35fr_.65fr]">
           <div className="relative overflow-hidden rounded-[2rem] border border-border bg-surface shadow-premium">
             <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-sky-400/10 blur-3xl" />
+
             <div className="relative p-5 sm:p-7">
               <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-muted">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5">
                   <Sparkles className="h-3.5 w-3.5" />
                   Heute für dich
                 </span>
+
                 <span className="rounded-full border border-border px-3 py-1.5">
                   {destinationCurrency.flag} {destinationCurrency.code}
                 </span>
+
                 {locationStatus === "ready" && (
                   <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-emerald-700 dark:text-emerald-300">
                     GPS aktiv
@@ -476,16 +527,24 @@ export function AppShell() {
               </div>
 
               <div className="mt-5 max-w-3xl">
-                <div className="text-sm font-semibold text-muted">{t("phaseHotel")}</div>
+                <div className="text-sm font-semibold text-muted">
+                  {t("phaseHotel")}
+                </div>
+
                 <h1 className="mt-1 text-3xl font-black tracking-[-0.03em] sm:text-5xl">
                   {cityLabel}
                 </h1>
+
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-                  Alles Wichtige für deinen nächsten Schritt – kompakt, lokal und mit einem Tap erreichbar.
+                  Alles Wichtige für deinen nächsten Schritt – kompakt, lokal
+                  und mit einem Tap erreichbar.
                 </p>
               </div>
 
-              <div ref={feedRef as React.RefObject<HTMLDivElement>} className="mt-6 grid gap-2 sm:grid-cols-2">
+              <div
+                ref={feedRef as React.RefObject<HTMLDivElement>}
+                className="mt-6 grid gap-2 sm:grid-cols-2"
+              >
                 {feed.map((item) => (
                   <button
                     key={item.id}
@@ -494,10 +553,17 @@ export function AppShell() {
                     className="group flex items-start gap-3 rounded-2xl border border-border bg-white/55 p-3.5 text-left shadow-soft transition hover:-translate-y-0.5 dark:bg-slate-950/20"
                   >
                     <span className="mt-0.5 text-xl">{item.icon ?? "✨"}</span>
+
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-bold">{item.title}</span>
-                      <span className="mt-1 block text-xs leading-5 text-muted">{item.body}</span>
+                      <span className="block text-sm font-bold">
+                        {item.title}
+                      </span>
+
+                      <span className="mt-1 block text-xs leading-5 text-muted">
+                        {item.body}
+                      </span>
                     </span>
+
                     <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />
                   </button>
                 ))}
@@ -510,8 +576,12 @@ export function AppShell() {
                   className="inline-flex h-11 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-bold text-white shadow-soft transition hover:-translate-y-0.5 dark:bg-white dark:text-slate-950"
                 >
                   <Navigation className="h-4 w-4" />
-                  {locationStatus === "loading" ? "Standort wird gesucht…" : "Meinen Standort"}
+
+                  {locationStatus === "loading"
+                    ? "Standort wird gesucht…"
+                    : "Meinen Standort"}
                 </button>
+
                 <button
                   type="button"
                   onClick={() => scrollTo(phrasesRef)}
@@ -528,26 +598,47 @@ export function AppShell() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-bold">Reisemodus</div>
-                <div className="mt-1 text-xs text-muted">Was ist gerade relevant?</div>
+                <div className="mt-1 text-xs text-muted">
+                  Was ist gerade relevant?
+                </div>
               </div>
+
               <Compass className="h-5 w-5 text-muted" />
             </div>
 
             <div className="mt-5 grid gap-2">
-              {timelinePhases.filter((item) => ["hotel", "holiday", "emergency", "return"].includes(item.id)).map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setPhase(item.id)}
-                  className={`flex items-center justify-between rounded-2xl border px-3.5 py-3 text-left transition ${phase === item.id ? "border-transparent bg-slate-950 text-white shadow-soft dark:bg-white dark:text-slate-950" : "border-border bg-surface"}`}
-                >
-                  <span>
-                    <span className="block text-sm font-bold">{item.title}</span>
-                    <span className={`mt-0.5 block text-xs ${phase === item.id ? "opacity-70" : "text-muted"}`}>{item.description}</span>
-                  </span>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              ))}
+              {timelinePhases
+                .filter((item) =>
+                  ["hotel", "holiday", "emergency", "return"].includes(item.id),
+                )
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setPhase(item.id)}
+                    className={`flex items-center justify-between rounded-2xl border px-3.5 py-3 text-left transition ${
+                      phase === item.id
+                        ? "border-transparent bg-slate-950 text-white shadow-soft dark:bg-white dark:text-slate-950"
+                        : "border-border bg-surface"
+                    }`}
+                  >
+                    <span>
+                      <span className="block text-sm font-bold">
+                        {item.title}
+                      </span>
+
+                      <span
+                        className={`mt-0.5 block text-xs ${
+                          phase === item.id ? "opacity-70" : "text-muted"
+                        }`}
+                      >
+                        {item.description}
+                      </span>
+                    </span>
+
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                ))}
             </div>
           </aside>
         </section>
@@ -562,8 +653,14 @@ export function AppShell() {
                 <WalletCards className="h-4 w-4" />
                 {t("smartCurrency")}
               </div>
-              <div className="mt-1 text-xs text-muted">{ratesLoading ? "Kurs wird aktualisiert…" : "Aktueller Kurs · ohne Verlauf"}</div>
+
+              <div className="mt-1 text-xs text-muted">
+                {ratesLoading
+                  ? "Kurs wird aktualisiert…"
+                  : "Aktueller Kurs · ohne Verlauf"}
+              </div>
             </div>
+
             <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
               {ratesLoading ? "Update" : "Live / Offline"}
             </span>
@@ -572,7 +669,10 @@ export function AppShell() {
           <div className="mt-4 rounded-[1.5rem] border border-border bg-white/55 p-3 dark:bg-slate-950/20">
             <div className="grid items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
               <div className="rounded-2xl bg-surface p-3 shadow-soft">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Von</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
+                  Von
+                </div>
+
                 <div className="mt-2 flex items-center gap-2">
                   <select
                     value={fromCurrency}
@@ -585,6 +685,7 @@ export function AppShell() {
                       </option>
                     ))}
                   </select>
+
                   <input
                     value={amount}
                     onChange={(event) => setAmount(event.target.value)}
@@ -605,7 +706,10 @@ export function AppShell() {
               </button>
 
               <div className="rounded-2xl bg-surface p-3 shadow-soft">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Nach</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
+                  Nach
+                </div>
+
                 <div className="mt-2 flex items-center gap-2">
                   <select
                     value={toCurrency}
@@ -618,10 +722,14 @@ export function AppShell() {
                       </option>
                     ))}
                   </select>
+
                   <div className="w-28 text-right text-2xl font-black sm:w-36 sm:text-3xl">
-                    {new Intl.NumberFormat(language === "de" ? "de-DE" : "en-US", {
-                      maximumFractionDigits: 2,
-                    }).format(resultAmount)}
+                    {new Intl.NumberFormat(
+                      language === "de" ? "de-DE" : "en-US",
+                      {
+                        maximumFractionDigits: 2,
+                      },
+                    ).format(resultAmount)}
                   </div>
                 </div>
               </div>
@@ -629,24 +737,46 @@ export function AppShell() {
 
             <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm font-semibold text-muted">
-                1 {fromCurrency} = <span className="text-text">{currentRate.toFixed(4)} {toCurrency}</span>
+                1 {fromCurrency} ={" "}
+                <span className="text-text">
+                  {currentRate.toFixed(4)} {toCurrency}
+                </span>
               </div>
+
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => void copyText(`${amount} ${fromCurrency} = ${resultAmount.toFixed(2)} ${toCurrency}`, "currency")}
+                  onClick={() =>
+                    void copyText(
+                      `${amount} ${fromCurrency} = ${resultAmount.toFixed(
+                        2,
+                      )} ${toCurrency}`,
+                      "currency",
+                    )
+                  }
                   className="inline-flex h-10 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-bold text-white dark:bg-white dark:text-slate-950"
                 >
                   <Copy className="h-4 w-4" />
+
                   {copied === "currency" ? "Kopiert" : "Kurs kopieren"}
                 </button>
+
                 <button
                   type="button"
                   onClick={() => toggleFavorite(toCurrency)}
                   className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-bold"
                 >
-                  <Star className={`h-4 w-4 ${favoriteCurrencies.includes(toCurrency) ? "fill-current" : ""}`} />
-                  {favoriteCurrencies.includes(toCurrency) ? "Favorit" : "Merken"}
+                  <Star
+                    className={`h-4 w-4 ${
+                      favoriteCurrencies.includes(toCurrency)
+                        ? "fill-current"
+                        : ""
+                    }`}
+                  />
+
+                  {favoriteCurrencies.includes(toCurrency)
+                    ? "Favorit"
+                    : "Merken"}
                 </button>
               </div>
             </div>
@@ -655,12 +785,17 @@ export function AppShell() {
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
             {QUICK_CURRENCIES.map((code) => {
               const item = getCurrency(code);
+
               return (
                 <button
                   key={code}
                   type="button"
                   onClick={() => setToCurrency(code)}
-                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-bold transition ${toCurrency === code ? "border-transparent bg-slate-950 text-white dark:bg-white dark:text-slate-950" : "border-border bg-surface"}`}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-bold transition ${
+                    toCurrency === code
+                      ? "border-transparent bg-slate-950 text-white dark:bg-white dark:text-slate-950"
+                      : "border-border bg-surface"
+                  }`}
                 >
                   {item.flag} {code}
                 </button>
@@ -679,8 +814,12 @@ export function AppShell() {
                 <Navigation className="h-4 w-4" />
                 In deiner Nähe
               </div>
-              <div className="mt-1 text-xs text-muted">Karte, echte Entfernungen und direkte Route.</div>
+
+              <div className="mt-1 text-xs text-muted">
+                Karte, echte Entfernungen und direkte Route.
+              </div>
             </div>
+
             <div className="flex gap-2 overflow-x-auto pb-1">
               {[
                 ["all", "Alles"],
@@ -689,7 +828,10 @@ export function AppShell() {
                 ["cafe", "Café"],
                 ["hotel", "Hotel"],
               ].map(([id, label]) => (
-                <span key={id} className="shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-bold">
+                <span
+                  key={id}
+                  className="shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-bold"
+                >
                   {label}
                 </span>
               ))}
@@ -703,36 +845,62 @@ export function AppShell() {
 
             <div className="grid gap-2">
               {dataLoading && (
-                <div className="rounded-2xl border border-border p-4 text-sm text-muted">Lokale Treffer werden geladen…</div>
+                <div className="rounded-2xl border border-border p-4 text-sm text-muted">
+                  Lokale Treffer werden geladen…
+                </div>
               )}
+
               {!dataLoading && nearbyPreview.length === 0 && (
-                <div className="rounded-2xl border border-border p-4 text-sm text-muted">Noch keine lokalen Treffer. Standort freigeben und erneut versuchen.</div>
+                <div className="rounded-2xl border border-border p-4 text-sm text-muted">
+                  Noch keine lokalen Treffer. Standort freigeben und erneut
+                  versuchen.
+                </div>
               )}
+
               {nearbyPreview.map((place) => (
-                <div key={place.id} className="rounded-2xl border border-border bg-white/50 p-3.5 shadow-soft dark:bg-slate-950/20">
+                <div
+                  key={place.id}
+                  className="rounded-2xl border border-border bg-white/50 p-3.5 shadow-soft dark:bg-slate-950/20"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm font-bold">{place.title}</div>
+
                       <div className="mt-1 text-xs text-muted">
-                        {formatDistance(place.distance)}{place.rating ? ` · ★ ${place.rating.toFixed(1)}` : ""}
+                        {formatDistance(place.distance)}
+                        {place.rating
+                          ? ` · ★ ${place.rating.toFixed(1)}`
+                          : ""}
                       </div>
                     </div>
+
                     <span className="rounded-full border border-border px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em]">
                       {place.kind}
                     </span>
                   </div>
-                  <div className="mt-2 text-xs leading-5 text-muted">{place.note}</div>
+
+                  <div className="mt-2 text-xs leading-5 text-muted">
+                    {place.note}
+                  </div>
+
                   <div className="mt-3 flex gap-2">
                     <button
                       type="button"
-                      onClick={() => safeOpen(mapsRouteUrl(place.lat, place.lon))}
+                      onClick={() =>
+                        safeOpen(mapsRouteUrl(place.lat, place.lon))
+                      }
                       className="inline-flex h-9 items-center gap-1.5 rounded-full bg-slate-950 px-3 text-xs font-bold text-white dark:bg-white dark:text-slate-950"
                     >
                       Route
                     </button>
+
                     <button
                       type="button"
-                      onClick={() => safeOpen(mapsSearchUrl(place.title, place.lat, place.lon))}
+                      onClick={() =>
+                        safeOpen(
+                          mapsSearchUrl(place.title, place.lat, place.lon),
+                        )
+                      }
                       className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-bold"
                     >
                       Maps
@@ -754,15 +922,26 @@ export function AppShell() {
                 <Languages className="h-4 w-4" />
                 Travel Phrases
               </div>
-              <div className="mt-1 text-xs text-muted">Die wichtigsten Sätze zuerst. Englisch immer verfügbar.</div>
+
+              <div className="mt-1 text-xs text-muted">
+                Die wichtigsten Sätze zuerst. Englisch immer verfügbar.
+              </div>
             </div>
-            <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-bold">50 vorbereitet</span>
+
+            <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-bold">
+              50 vorbereitet
+            </span>
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {quickPhrases.slice(0, 5).map((phrase) => {
-              if (!phrase) return null;
-              const local = phrase.local[language] ?? phrase.local.en ?? phrase.english;
+              if (!phrase) {
+                return null;
+              }
+
+              const local =
+                phrase.local[language] ?? phrase.local.en ?? phrase.english;
+
               return (
                 <button
                   key={phrase.id}
@@ -770,9 +949,17 @@ export function AppShell() {
                   onClick={() => setSelectedPhrase(phrase.id)}
                   className="rounded-2xl border border-border bg-white/50 p-3 text-left shadow-soft transition hover:-translate-y-0.5 dark:bg-slate-950/20"
                 >
-                  <div className="text-xs font-bold text-muted">{phrase.category}</div>
-                  <div className="mt-1 text-sm font-bold leading-5">{local}</div>
-                  <div className="mt-1 text-xs text-muted">{phrase.english}</div>
+                  <div className="text-xs font-bold text-muted">
+                    {phrase.category}
+                  </div>
+
+                  <div className="mt-1 text-sm font-bold leading-5">
+                    {local}
+                  </div>
+
+                  <div className="mt-1 text-xs text-muted">
+                    {phrase.english}
+                  </div>
                 </button>
               );
             })}
@@ -781,15 +968,27 @@ export function AppShell() {
           {selectedPhrase && (
             <div className="mt-4 rounded-[1.5rem] border border-border bg-slate-950 p-4 text-white shadow-soft dark:bg-white dark:text-slate-950">
               {(() => {
-                const phrase = phrases.find((item) => item.id === selectedPhrase);
-                if (!phrase) return null;
-                const local = phrase.local[language] ?? phrase.local.en ?? phrase.english;
+                const phrase = phrases.find(
+                  (item) => item.id === selectedPhrase,
+                );
+
+                if (!phrase) {
+                  return null;
+                }
+
+                const local =
+                  phrase.local[language] ?? phrase.local.en ?? phrase.english;
+
                 return (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-lg font-black">{local}</div>
-                      <div className="mt-1 text-sm opacity-70">{phrase.english}</div>
+
+                      <div className="mt-1 text-sm opacity-70">
+                        {phrase.english}
+                      </div>
                     </div>
+
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -798,14 +997,21 @@ export function AppShell() {
                       >
                         Vorlesen
                       </button>
+
                       <button
                         type="button"
-                        onClick={() => void copyText(local, `phrase-${phrase.id}`)}
+                        onClick={() =>
+                          void copyText(local, `phrase-${phrase.id}`)
+                        }
                         className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-slate-950 dark:bg-slate-950 dark:text-white"
                       >
                         <Copy className="h-4 w-4" />
-                        {copied === `phrase-${phrase.id}` ? "Kopiert" : "Kopieren"}
+
+                        {copied === `phrase-${phrase.id}`
+                          ? "Kopiert"
+                          : "Kopieren"}
                       </button>
+
                       <button
                         type="button"
                         onClick={() => setSelectedPhrase(null)}
@@ -830,15 +1036,23 @@ export function AppShell() {
                   <CalendarDays className="h-4 w-4" />
                   Heute & dein Aufenthalt
                 </div>
-                <div className="mt-1 text-xs text-muted">Lokale Events nach Zeitfenster priorisieren.</div>
+
+                <div className="mt-1 text-xs text-muted">
+                  Lokale Events nach Zeitfenster priorisieren.
+                </div>
               </div>
+
               <div className="flex gap-1">
                 {[1, 3, 5, 10].map((days) => (
                   <button
                     key={days}
                     type="button"
                     onClick={() => setStayDays(days)}
-                    className={`rounded-full px-2.5 py-1.5 text-xs font-bold ${stayDays === days ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950" : "border border-border"}`}
+                    className={`rounded-full px-2.5 py-1.5 text-xs font-bold ${
+                      stayDays === days
+                        ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
+                        : "border border-border"
+                    }`}
                   >
                     {days === 1 ? "Heute" : `${days} Tage`}
                   </button>
@@ -847,17 +1061,36 @@ export function AppShell() {
             </div>
 
             <div className="mt-4 grid gap-2">
-              {(eventPreview.length ? eventPreview : eventTemplates.slice(0, 3)).map((event, index) => (
-                <div key={event.id ?? `${event.title}-${index}`} className="rounded-2xl border border-border bg-white/50 p-3.5 dark:bg-slate-950/20">
+              {(eventPreview.length
+                ? eventPreview
+                : eventTemplates.slice(0, 3)
+              ).map((event, index) => (
+                <div
+                  key={`${event.title}-${index}`}
+                  className="rounded-2xl border border-border bg-white/50 p-3.5 dark:bg-slate-950/20"
+                >
                   <div className="flex items-start gap-3">
                     <div className="text-xl">{event.emoji}</div>
+
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="text-sm font-bold">{event.title}</div>
-                        <span className="rounded-full border border-border px-2 py-1 text-[10px] font-bold uppercase">{event.category}</span>
+
+                        <span className="rounded-full border border-border px-2 py-1 text-[10px] font-bold uppercase">
+                          {event.category}
+                        </span>
                       </div>
-                      <div className="mt-1 text-xs text-muted">{event.date ? `${event.date} · ` : ""}{event.time} · {event.duration}</div>
-                      <div className="mt-1 text-xs leading-5 text-muted">{event.note}</div>
+
+                      <div className="mt-1 text-xs text-muted">
+                        {"date" in event && event.date
+                          ? `${event.date} · `
+                          : ""}
+                        {event.time} · {event.duration}
+                      </div>
+
+                      <div className="mt-1 text-xs leading-5 text-muted">
+                        {event.note}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -872,8 +1105,12 @@ export function AppShell() {
                   <Sparkles className="h-4 w-4" />
                   Explore Nearby
                 </div>
-                <div className="mt-1 text-xs text-muted">Top-Orte, Hidden Gems und lokale Highlights.</div>
+
+                <div className="mt-1 text-xs text-muted">
+                  Top-Orte, Hidden Gems und lokale Highlights.
+                </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => scrollTo(nearbyRef)}
@@ -884,32 +1121,52 @@ export function AppShell() {
             </div>
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {["Harbour Walk", "Sunset Point", "Nature Reserve", "Boat Tour Dock"].map((item, index) => (
+              {[
+                "Harbour Walk",
+                "Sunset Point",
+                "Nature Reserve",
+                "Boat Tour Dock",
+              ].map((item, index) => (
                 <button
                   type="button"
                   key={item}
                   onClick={() => scrollTo(nearbyRef)}
                   className="rounded-2xl border border-border bg-white/50 p-3.5 text-left shadow-soft dark:bg-slate-950/20"
                 >
-                  <div className="text-lg">{["⚓", "🌅", "🌲", "⛴️"][index]}</div>
+                  <div className="text-lg">
+                    {["⚓", "🌅", "🌲", "⛴️"][index]}
+                  </div>
+
                   <div className="mt-2 text-sm font-bold">{item}</div>
-                  <div className="mt-1 text-xs leading-5 text-muted">Lokales Highlight · Route in der Karte</div>
+
+                  <div className="mt-1 text-xs leading-5 text-muted">
+                    Lokales Highlight · Route in der Karte
+                  </div>
                 </button>
               ))}
             </div>
           </div>
         </section>
 
-        <section ref={sosRef} className="rounded-[2rem] border border-rose-500/20 bg-rose-500/[0.04] p-4 shadow-premium sm:p-5">
+        <section
+          ref={sosRef}
+          className="rounded-[2rem] border border-rose-500/20 bg-rose-500/[0.04] p-4 shadow-premium sm:p-5"
+        >
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-sm font-bold text-rose-700 dark:text-rose-300">
                 <ShieldAlert className="h-4 w-4" />
                 SOS / Soforthilfe
               </div>
-              <div className="mt-1 text-xs text-muted">Kritische Reisehilfe ohne Suchen.</div>
+
+              <div className="mt-1 text-xs text-muted">
+                Kritische Reisehilfe ohne Suchen.
+              </div>
             </div>
-            <span className="rounded-full border border-rose-500/20 px-2.5 py-1 text-[11px] font-bold text-rose-700 dark:text-rose-300">SOS</span>
+
+            <span className="rounded-full border border-rose-500/20 px-2.5 py-1 text-[11px] font-bold text-rose-700 dark:text-rose-300">
+              SOS
+            </span>
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -921,10 +1178,15 @@ export function AppShell() {
                 className="flex items-center gap-3 rounded-2xl border border-rose-500/10 bg-surface p-3.5 text-left shadow-soft"
               >
                 <div className="text-xl">{action.icon}</div>
+
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-bold">{action.title}</div>
-                  <div className="mt-0.5 text-xs text-muted">{action.note}</div>
+
+                  <div className="mt-0.5 text-xs text-muted">
+                    {action.note}
+                  </div>
                 </div>
+
                 <ChevronRight className="h-4 w-4 text-muted" />
               </button>
             ))}
@@ -945,7 +1207,11 @@ export function AppShell() {
               key={id}
               type="button"
               onClick={() => goToMobileTab(id as MobileTab)}
-              className={`flex min-h-12 flex-col items-center justify-center rounded-2xl text-[10px] font-bold ${mobileTab === id ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950" : "text-muted"}`}
+              className={`flex min-h-12 flex-col items-center justify-center rounded-2xl text-[10px] font-bold ${
+                mobileTab === id
+                  ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
+                  : "text-muted"
+              }`}
             >
               <span className="text-base leading-none">{icon}</span>
               <span className="mt-1">{label}</span>
@@ -959,25 +1225,56 @@ export function AppShell() {
           <div className="ml-auto max-w-sm rounded-3xl bg-surface p-4 shadow-premium">
             <div className="flex items-center justify-between">
               <div className="font-black">FX Pro Travel Gold</div>
-              <button type="button" onClick={() => setMobileMenu(false)} className="flex h-10 w-10 items-center justify-center rounded-full border border-border">
+
+              <button
+                type="button"
+                onClick={() => setMobileMenu(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
+
             <div className="mt-4 grid gap-2">
               <select
                 value={language}
-                onChange={(event) => setLanguage(event.target.value as typeof language)}
+                onChange={(event) =>
+                  setLanguage(event.target.value as typeof language)
+                }
                 className="h-11 rounded-2xl border border-border bg-surface px-3 font-semibold outline-none"
               >
                 {languages.map((item) => (
-                  <option key={item.code} value={item.code}>{item.label}</option>
+                  <option key={item.code} value={item.code}>
+                    {item.label}
+                  </option>
                 ))}
               </select>
-              <button type="button" onClick={requestLocation} className="h-11 rounded-2xl border border-border text-left px-3 font-semibold">
-                {locationStatus === "loading" ? "Standort wird gesucht…" : "Standort aktualisieren"}
+
+              <button
+                type="button"
+                onClick={requestLocation}
+                className="h-11 rounded-2xl border border-border px-3 text-left font-semibold"
+              >
+                {locationStatus === "loading"
+                  ? "Standort wird gesucht…"
+                  : "Standort aktualisieren"}
               </button>
-              <button type="button" onClick={() => setPhase("hotel")} className="h-11 rounded-2xl border border-border text-left px-3 font-semibold">Hotel-Modus</button>
-              <button type="button" onClick={() => setPhase("holiday")} className="h-11 rounded-2xl border border-border text-left px-3 font-semibold">Urlaubs-Modus</button>
+
+              <button
+                type="button"
+                onClick={() => setPhase("hotel")}
+                className="h-11 rounded-2xl border border-border px-3 text-left font-semibold"
+              >
+                Hotel-Modus
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPhase("holiday")}
+                className="h-11 rounded-2xl border border-border px-3 text-left font-semibold"
+              >
+                Urlaubs-Modus
+              </button>
             </div>
           </div>
         </div>
