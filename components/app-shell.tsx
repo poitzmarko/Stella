@@ -88,7 +88,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
     sosTitle: "SOS", sosSub: "Critical travel help, instantly reachable.",
     speak: "Speak", copy: "Copy", search: "Search phrases", noPhrase: "No matching phrase found.",
     locationBusy: "Finding your location…", myLocation: "My location", gpsOn: "GPS active",
-    hotel: "Hotel", holiday: "Holiday", emergency: "Emergency", return: "Return",
+    holiday: "Holiday", emergency: "Emergency", return: "Return",
     hotelDesc: "Reception, breakfast, housekeeping.", holidayDesc: "Nearby, Explore, Events and Feed.",
     emergencyDesc: "Instantly accessible help.", returnDesc: "Checkout, transfer, final hints.",
     more: "More", noData: "No data available.",
