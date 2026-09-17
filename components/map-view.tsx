@@ -2,17 +2,9 @@
 
 import "leaflet/dist/leaflet.css";
 
+import { useEffect, useRef } from "react";
+import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import L from "leaflet";
-import { useEffect, useMemo, useRef } from "react";
-import {
-  CircleMarker,
-  MapContainer,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-  ZoomControl,
-} from "react-leaflet";
 
 import { formatDistance } from "@/lib/geo";
 import type { LocationPoint, NearbyPlace } from "@/lib/types";
@@ -42,142 +34,167 @@ function markerIcon(kind: string, active = false) {
   });
 }
 
-function MapResizeHandler() {
-  const map = useMap();
-
-  useEffect(() => {
-    const invalidate = () => {
-      window.requestAnimationFrame(() => map.invalidateSize({ pan: false }));
-    };
-
-    invalidate();
-
-    const container = map.getContainer();
-    const observer = typeof ResizeObserver !== "undefined"
-      ? new ResizeObserver(invalidate)
-      : null;
-
-    observer?.observe(container);
-    window.addEventListener("resize", invalidate);
-
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", invalidate);
-    };
-  }, [map]);
-
-  return null;
+function validPoint(point: LocationPoint) {
+  return Number.isFinite(point.lat) && Number.isFinite(point.lon);
 }
 
-function MapViewport({ center, places }: MapViewProps) {
-  const map = useMap();
-  const lastCenter = useRef<string>("");
-  const lastPlaces = useRef<string>("");
-
-  useEffect(() => {
-    const centerKey = `${center.lat.toFixed(5)},${center.lon.toFixed(5)}`;
-    const placesKey = (places ?? [])
-      .map((place) => `${place.id}:${place.lat.toFixed(5)},${place.lon.toFixed(5)}`)
-      .join("|");
-
-    const hasChanged = centerKey !== lastCenter.current || placesKey !== lastPlaces.current;
-
-    if (!hasChanged) return;
-
-    lastCenter.current = centerKey;
-    lastPlaces.current = placesKey;
-
-    window.requestAnimationFrame(() => {
-      map.invalidateSize({ pan: false });
-
-      const validPlaces = (places ?? []).filter(
-        (place) => Number.isFinite(place.lat) && Number.isFinite(place.lon),
-      );
-
-      if (validPlaces.length === 0) {
-        map.setView([center.lat, center.lon], 14, { animate: true });
-        return;
-      }
-
-      const bounds = L.latLngBounds([
-        [center.lat, center.lon],
-        ...validPlaces.map((place) => [place.lat, place.lon] as [number, number]),
-      ]);
-
-      map.fitBounds(bounds, {
-        paddingTopLeft: [28, 28],
-        paddingBottomRight: [28, 28],
-        maxZoom: 15,
-        animate: true,
-      });
-    });
-  }, [center, places, map]);
-
-  return null;
+function validPlace(place: NearbyPlace) {
+  return Number.isFinite(place.lat) && Number.isFinite(place.lon);
 }
 
 export function MapView({ center, places = [] }: MapViewProps) {
-  const userIcon = useMemo(() => markerIcon("user", true), []);
+  const mapNodeRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const userMarkerRef = useRef<LeafletMarker | null>(null);
+  const poiLayerRef = useRef<L.LayerGroup | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+
+  useEffect(() => {
+    if (!mapNodeRef.current || mapRef.current) {
+      return;
+    }
+
+    const map = L.map(mapNodeRef.current, {
+      zoomControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: true,
+      touchZoom: true,
+      dragging: true,
+      preferCanvas: true,
+      attributionControl: true,
+    });
+
+    mapRef.current = map;
+
+    L.control
+      .zoom({ position: "bottomright" })
+      .addTo(map);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      detectRetina: true,
+      updateWhenIdle: true,
+      keepBuffer: 2,
+    }).addTo(map);
+
+    poiLayerRef.current = L.layerGroup().addTo(map);
+
+    if (validPoint(center)) {
+      map.setView([center.lat, center.lon], 14, { animate: false });
+    } else {
+      map.setView([52.39, 13.06], 12, { animate: false });
+    }
+
+    const invalidate = () => {
+      window.requestAnimationFrame(() => {
+        map.invalidateSize({ pan: false });
+      });
+    };
+
+    invalidate();
+    window.setTimeout(invalidate, 100);
+    window.setTimeout(invalidate, 350);
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(invalidate);
+      observer.observe(mapNodeRef.current);
+      resizeObserverRef.current = observer;
+    }
+
+    window.addEventListener("resize", invalidate);
+
+    return () => {
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
+      window.removeEventListener("resize", invalidate);
+
+      userMarkerRef.current?.remove();
+      userMarkerRef.current = null;
+
+      poiLayerRef.current?.clearLayers();
+      poiLayerRef.current = null;
+
+      map.remove();
+      mapRef.current = null;
+    };
+    // The map instance must only be created once. Location/POI updates are handled below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (!map || !validPoint(center)) {
+      return;
+    }
+
+    const nextCenter: [number, number] = [center.lat, center.lon];
+
+    if (!userMarkerRef.current) {
+      userMarkerRef.current = L.marker(nextCenter, {
+        icon: markerIcon("user", true),
+        keyboard: false,
+        interactive: false,
+      }).addTo(map);
+    } else {
+      userMarkerRef.current.setLatLng(nextCenter);
+    }
+
+    const validPlaces = places.filter(validPlace).slice(0, 20);
+
+    if (poiLayerRef.current) {
+      poiLayerRef.current.clearLayers();
+
+      for (const place of validPlaces) {
+        const marker = L.marker([place.lat, place.lon], {
+          icon: markerIcon(place.kind),
+          riseOnHover: true,
+          title: place.title,
+        });
+
+        const rating =
+          typeof place.rating === "number" && Number.isFinite(place.rating)
+            ? ` · ★ ${place.rating.toFixed(1)}`
+            : "";
+
+        const note = place.note
+          ? `<div class="mt-2 text-xs leading-5 text-slate-600">${place.note}</div>`
+          : "";
+
+        marker.bindPopup(
+          `<div class="min-w-[190px] p-0.5"><div class="text-sm font-bold">${place.title}</div><div class="mt-1 text-xs text-slate-500">${formatDistance(place.distance)}${rating}</div>${note}</div>`,
+          { closeButton: true },
+        );
+
+        marker.addTo(poiLayerRef.current);
+      }
+    }
+
+    map.invalidateSize({ pan: false });
+
+    if (validPlaces.length === 0) {
+      map.setView(nextCenter, 14, { animate: true });
+      return;
+    }
+
+    const bounds = L.latLngBounds([
+      nextCenter,
+      ...validPlaces.map((place) => [place.lat, place.lon] as [number, number]),
+    ]);
+
+    map.fitBounds(bounds, {
+      paddingTopLeft: [28, 28],
+      paddingBottomRight: [28, 28],
+      maxZoom: 15,
+      animate: false,
+    });
+  }, [center.lat, center.lon, places]);
 
   return (
     <div className="relative h-[360px] w-full overflow-hidden rounded-[1.35rem] bg-slate-100 dark:bg-slate-950 sm:h-[440px] lg:h-[520px]">
-      <MapContainer
-        center={[center.lat, center.lon]}
-        zoom={14}
-        zoomControl={false}
-        scrollWheelZoom={false}
-        doubleClickZoom
-        touchZoom
-        dragging
-        className="h-full w-full"
-        preferCanvas
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        <ZoomControl position="bottomright" />
-        <MapResizeHandler />
-        <MapViewport center={center} places={places} />
-
-        <CircleMarker
-          center={[center.lat, center.lon]}
-          radius={9}
-          pathOptions={{
-            color: "#0f172a",
-            weight: 3,
-            fillColor: "#ffffff",
-            fillOpacity: 1,
-          }}
-        />
-
-        <Marker position={[center.lat, center.lon]} icon={userIcon} opacity={0.001} />
-
-        {places.map((place) => (
-          <Marker
-            key={place.id}
-            position={[place.lat, place.lon]}
-            icon={markerIcon(place.kind)}
-            riseOnHover
-          >
-            <Popup closeButton>
-              <div className="min-w-[190px] p-0.5">
-                <div className="text-sm font-bold">{place.title}</div>
-                <div className="mt-1 text-xs text-slate-500">
-                  {formatDistance(place.distance)}
-                  {place.rating ? ` · ★ ${place.rating.toFixed(1)}` : ""}
-                </div>
-                {place.note ? (
-                  <div className="mt-2 text-xs leading-5 text-slate-600">
-                    {place.note}
-                  </div>
-                ) : null}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      <div ref={mapNodeRef} className="h-full w-full" />
 
       <div className="pointer-events-none absolute left-3 top-3 z-[500] rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/90 dark:text-slate-200">
         {places.length > 0 ? `${Math.min(places.length, 20)} Orte` : "Standort"}
@@ -225,6 +242,8 @@ export function MapView({ center, places = [] }: MapViewProps) {
         .leaflet-control-zoom {
           border: 0 !important;
           box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12) !important;
+          overflow: hidden;
+          border-radius: 12px !important;
         }
         .leaflet-control-zoom a {
           width: 36px !important;
