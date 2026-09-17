@@ -1,56 +1,41 @@
-# FX Pro Travel Gold 5.0 – Premium UX
+# FX Pro Travel Gold 5.1 - Premium Deluxe
 
 Premium UX rebuild for the existing Stella Next.js repository.
 
-## What changes
+## Ziel
 
-- Mobile-first iPhone layout with compact bottom navigation
-- Premium contextual home instead of a long stacked dashboard
-- Compact two-currency converter with current rate only
-- Live / offline FX fallback with normalized rate direction
-- GPS request + reverse geocoding fallback
-- Leaflet/OpenStreetMap Nearby integration retained
-- Local event window selector: today / 3 / 5 / 10 days
-- Travel Phrases as quick actions with speech + copy
-- SOS quick access
-- Language switch: DE / EN / ES / FR / IT / PT / zh-Hans
-- Persistent language, theme, currency pair and favorites
-- Desktop retains denser cards while mobile stays thumb-friendly
+Eine mobile-first Reise-PWA mit klaren Primary Views:
 
-## Files to replace
+- Home
+- Money
+- Nearby
+- Travel Phrases
+- SOS
 
-1. `components/app-shell.tsx`
-2. `lib/i18n.ts`
-3. `lib/sources.ts`
-4. `lib/types.ts`
-5. `app/globals.css`
+Die Startseite priorisiert nur die wichtigsten Informationen; Detailfunktionen liegen in fokussierten Views.
 
-`app/page.tsx` does not need to change because it already renders `AppShell`.
+## Technische Änderungen
 
-## Recommended GitHub sequence
+- kompakte mobile-first Navigation
+- echte interaktive Nearby-Filter
+- Explore Nearby aus derselben Datenbasis
+- Local Events mit 1/3/5/10 Tagen
+- Travel Phrases mit Suche, Vorlesen und Kopieren
+- SOS mit dediziertem View
+- persistenter Theme- und Währungszustand
+- dynamisches HTML-Language-Attribut
+- vorhandene Next.js-/Leaflet-/Overpass-/Frankfurter-Struktur bleibt erhalten
 
-Create a new branch first, for example:
+## Import
 
-`premium-ux-5`
+1. Branch vom funktionierenden `nextjs-rebuild` erstellen.
+2. `components/app-shell.tsx` ersetzen.
+3. `lib/i18n.ts`, `lib/types.ts` und `lib/sources.ts` durch die mitgelieferten Dateien ersetzen.
+4. `app/globals.css` durch die mitgelieferte Datei ersetzen.
+5. Keine bestehenden `package.json`, `next.config.mjs`, `app/page.tsx`, `app/layout.tsx` oder `lib/mock-data.ts` überschreiben, sofern sie im Ziel-Repo bereits funktionieren.
+6. Vercel Preview prüfen.
+7. Erst nach erfolgreichem Preview in `main` mergen.
 
-Then replace the five files above. Commit once:
+## Hinweis zu Live-Daten
 
-`FX Pro Travel Gold 5.0 premium UX rebuild`
-
-Wait for Vercel Preview to finish. Do not merge to `main` until the preview has been checked on desktop and iPhone.
-
-## Vercel
-
-Keep:
-
-- Framework: Next.js
-- Root Directory: `./`
-- Build command: automatic / `next build`
-- Output directory: Next.js default
-- No manual overrides unless the project explicitly requires them
-
-## Notes
-
-The UX rebuild intentionally leaves live third-party data behind explicit adapters. OSM/Overpass, Nominatim and the FX provider can be swapped later without rebuilding the page architecture.
-
-The Explore and Local Events UI is prepared for richer live data but does not invent ratings, event facts or routes that are not present in the current data model.
+Exchange Rates, Nearby und Reverse Geocoding sind über austauschbare Service-Grenzen vorbereitet. Local Events nutzen weiterhin den bestehenden Fallback-Datensatz und sind für eine echte Event-API vorbereitet.
